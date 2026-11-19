@@ -24,7 +24,7 @@ The create RPC and finalize RPC are idempotent. Create uses a private request-ke
 
 `RaceSessionCoordinator.cs` links the local runtime to the protected Supabase lifecycle API: it creates the durable session, starts the database session before the local clock, and retries the exact cached final result payload after transient finalization failures. `RaceSessionRuntime.cs` is the engine-independent server-side state machine for a single race instance. It:
 - accepts 1–64 registered entrants before the race starts;
-- enforces a single ordered checkpoint sequence per course;
+- enforces one ordered checkpoint sequence per lap and repeats it for a server-configured 1–100 laps;
 - uses server-supplied monotonic timestamps and derives finish time on the server;
 - records Finished, DNF and disqualified entrant states;
 - creates deterministic placements (finishers by finish time, then non-finishers by progress and stable tie-break);
