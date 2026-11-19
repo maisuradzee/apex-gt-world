@@ -8,6 +8,8 @@ REQUIRED = [
     "README.md",
     "ProjectSettings/ProjectVersion.txt",
     "Documentation/ARCHITECTURE.md",
+    "Documentation/UNITY_SETUP.md",
+    "Documentation/OFFLINE_PLAYTEST_CHECKLIST.md",
     "Assets/Scripts/VehiclePhysics/VehicleController.cs",
     "Assets/Scripts/MotorcyclePhysics/MotorcyclePrototypeController.cs",
     "Assets/Editor/StarterSceneGenerator.cs",
