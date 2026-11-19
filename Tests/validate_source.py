@@ -451,6 +451,25 @@ for fragment in [
 if "Write-Host $token" in windows_setup or "Write-Output $token" in windows_setup:
     raise SystemExit("Windows race-server setup must never print the secret token")
 
+# Windows Worker host must validate configuration without exposing secrets and stay outside Unity client code.
+windows_host_project = (ROOT / "Server/RaceServer.Host/ApexGtWorld.RaceServer.Host.csproj").read_text(encoding="utf-8")
+if "Microsoft.Extensions.Hosting.WindowsServices" not in windows_host_project or "../RaceServer/ApexGtWorld.RaceServer.csproj" not in windows_host_project:
+    raise SystemExit("Windows service host must use WindowsServices integration and reference the race-server library")
+windows_host_program = (ROOT / "Server/RaceServer.Host/Program.cs").read_text(encoding="utf-8")
+if "AddWindowsService" not in windows_host_program or "APEX GT WORLD Race Server" not in windows_host_program:
+    raise SystemExit("Windows Worker must register with the Windows Service host")
+windows_worker = (ROOT / "Server/RaceServer.Host/RaceServerWorker.cs").read_text(encoding="utf-8")
+for fragment in ["RaceControlClient.FromEnvironment()", "APEX_RACE_CONTROL_URL", "authoritative vehicle physics"]:
+    if fragment not in windows_worker:
+        raise SystemExit("Windows race-server host is missing its configuration/readiness boundary")
+
+windows_installer = (ROOT / "Server/RaceServer/Windows/Install-RaceServerService.ps1").read_text(encoding="utf-8")
+for fragment in ["New-Service", "APEX_RACE_SERVER_TOKEN", "NT AUTHORITY\\LocalService", "Start-Service"]:
+    if fragment not in windows_installer:
+        raise SystemExit("Windows race-server installer is missing required service setup: " + fragment)
+if "Write-Host $token" in windows_installer or "Write-Output $token" in windows_installer:
+    raise SystemExit("Windows installer must never print the race-server secret")
+
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github", ROOT / "Server", ROOT / "supabase"):
     for path in base.rglob("*"):
