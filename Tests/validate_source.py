@@ -401,6 +401,33 @@ for fragment in [
 if "RaceSessionRuntimeTests.Run();" not in (ROOT / "Server/RaceServer.Tests/Program.cs").read_text(encoding="utf-8"):
     raise SystemExit("Race-session runtime tests are not invoked by the CI test runner")
 
+# The coordinator binds the local race runtime to durable Supabase lifecycle transitions.
+coordinator_source = (ROOT / "Server/RaceServer/RaceSessionCoordinator.cs").read_text(encoding="utf-8")
+for fragment in [
+    "CreateAsync",
+    "CreateSessionAsync",
+    "StartSessionAsync",
+    "RecordCheckpoint",
+    "FinalizeSessionAsync",
+    "BuildFinalResults",
+    "response.Ok",
+]:
+    if fragment not in coordinator_source:
+        raise SystemExit("Missing race-session coordinator operation: " + fragment)
+
+coordinator_tests = (ROOT / "Server/RaceServer.Tests/RaceSessionCoordinatorTests.cs").read_text(encoding="utf-8")
+for fragment in [
+    "remote/local lifecycle ordering",
+    "stable create request key",
+    "first finalize network attempt fails",
+    "identical finalization retry",
+    "invalid course configuration never creates a database session",
+]:
+    if fragment not in coordinator_tests:
+        raise SystemExit("Missing integrated race coordinator test: " + fragment)
+if "RaceSessionCoordinatorTests.RunAsync();" not in (ROOT / "Server/RaceServer.Tests/Program.cs").read_text(encoding="utf-8"):
+    raise SystemExit("Race-session coordinator tests are not invoked by the CI test runner")
+
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github", ROOT / "Server", ROOT / "supabase"):
     for path in base.rglob("*"):
