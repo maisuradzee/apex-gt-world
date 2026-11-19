@@ -97,11 +97,24 @@ create table if not exists public.apex_race_sessions (
     region_id text not null references public.apex_regions(region_id),
     discipline text not null check (discipline in ('circuit','time_attack','drift','endurance','motorcycle')),
     status text not null default 'created' check (status in ('created','running','finished','cancelled')),
-    server_session_key text not null unique,
     started_at timestamptz,
     finished_at timestamptz,
     created_at timestamptz not null default now()
 );
+
+-- Keep the session handshake secret outside exposed schemas and away from client roles.
+create schema if not exists apex_private;
+revoke all on schema apex_private from public, anon, authenticated;
+
+create table if not exists apex_private.apex_race_session_secrets (
+    session_id uuid primary key references public.apex_race_sessions(id) on delete cascade,
+    server_session_key text not null unique,
+    created_at timestamptz not null default now()
+);
+alter table apex_private.apex_race_session_secrets enable row level security;
+revoke all on table apex_private.apex_race_session_secrets from public, anon, authenticated;
+grant usage on schema apex_private to service_role;
+grant select, insert, update, delete on table apex_private.apex_race_session_secrets to service_role;
 
 create table if not exists public.apex_race_results (
     id uuid primary key default gen_random_uuid(),
@@ -167,24 +180,26 @@ for select to authenticated using (true);
 create policy apex_progress_read_owner on public.apex_player_progress
 for select to authenticated using ((select auth.uid()) = user_id);
 
--- Explicitly prevent anonymous direct access. No authenticated write policies are
--- provided for inventory, property, business, race result or wallet mutations.
-revoke all on public.apex_regions from public, anon;
-revoke all on public.apex_profiles from public, anon;
-revoke all on public.apex_player_vehicles from public, anon;
-revoke all on public.apex_player_motorcycles from public, anon;
-revoke all on public.apex_wallets from public, anon;
-revoke all on public.apex_wallet_ledger from public, anon;
-revoke all on public.apex_properties from public, anon;
-revoke all on public.apex_businesses from public, anon;
-revoke all on public.apex_race_sessions from public, anon;
-revoke all on public.apex_race_results from public, anon;
-revoke all on public.apex_player_progress from public, anon;
+-- Start from zero client privileges for each table. The grants below expose only
+-- intended reads and profile display-name changes; authoritative state stays server-controlled.
+revoke all on public.apex_regions from public, anon, authenticated;
+revoke all on public.apex_profiles from public, anon, authenticated;
+revoke all on public.apex_player_vehicles from public, anon, authenticated;
+revoke all on public.apex_player_motorcycles from public, anon, authenticated;
+revoke all on public.apex_wallets from public, anon, authenticated;
+revoke all on public.apex_wallet_ledger from public, anon, authenticated;
+revoke all on public.apex_properties from public, anon, authenticated;
+revoke all on public.apex_businesses from public, anon, authenticated;
+revoke all on public.apex_race_sessions from public, anon, authenticated;
+revoke all on public.apex_race_results from public, anon, authenticated;
+revoke all on public.apex_player_progress from public, anon, authenticated;
 
 
 -- Explicit Data API privileges. RLS remains the row-level gate.
 grant select on public.apex_regions to authenticated;
-grant select, insert, update on public.apex_profiles to authenticated;
+grant select on public.apex_profiles to authenticated;
+grant insert (user_id, display_name) on public.apex_profiles to authenticated;
+grant update (display_name) on public.apex_profiles to authenticated;
 grant select on public.apex_player_vehicles to authenticated;
 grant select on public.apex_player_motorcycles to authenticated;
 grant select on public.apex_wallets to authenticated;

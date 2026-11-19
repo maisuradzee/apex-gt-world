@@ -33,6 +33,33 @@ if missing_rls:
 if "grant select" not in sql.lower() or "to authenticated" not in sql.lower():
     raise SystemExit("Expected explicit authenticated Data API grants")
 
+# Enforce least-privilege profile writes and keep server session credentials private.
+race_prefix = "create table if not exists public.apex_race_sessions"
+if race_prefix not in sql.lower():
+    raise SystemExit("Public race sessions table is missing")
+race_definition = sql.lower().split(race_prefix, 1)[1].split(");", 1)[0]
+if "server_session_key" in race_definition:
+    raise SystemExit("server_session_key must not be stored in the exposed race sessions table")
+if "create table if not exists apex_private.apex_race_session_secrets" not in sql.lower():
+    raise SystemExit("Private race-session secret table is missing")
+if "alter table apex_private.apex_race_session_secrets enable row level security" not in sql.lower():
+    raise SystemExit("RLS must be enabled on the private race-session secret table")
+for table in tables:
+    expected_revoke = f"revoke all on public.{table} from public, anon, authenticated;"
+    if expected_revoke not in sql.lower():
+        raise SystemExit(f"Client grants must be reset before explicit grants on {table}")
+required_column_grants = [
+    "grant insert (user_id, display_name) on public.apex_profiles to authenticated;",
+    "grant update (display_name) on public.apex_profiles to authenticated;",
+]
+for grant in required_column_grants:
+    if grant not in sql.lower():
+        raise SystemExit("Missing restricted profile column grant: " + grant)
+if "grant select, insert, update on public.apex_profiles to authenticated;" in sql.lower():
+    raise SystemExit("Broad profile table write grants are forbidden")
+if "grant select, insert, update, delete on table apex_private.apex_race_session_secrets to service_role;" not in sql.lower():
+    raise SystemExit("Trusted service role is missing private session-secret privileges")
+
 # Reject actual credential values in code/config. Placeholders and public publishable keys are permitted.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
     for path in base.rglob("*"):
