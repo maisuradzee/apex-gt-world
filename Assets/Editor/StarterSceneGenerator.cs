@@ -34,6 +34,7 @@ namespace ApexGTWorld.EditorTools
             CreateLighting();
             CreateTestPad("Car Test Pad");
             CreateCar();
+            AddOfflineGameFlow();
 
             EditorSceneManager.SaveScene(scene, CarScenePath);
             RegisterSceneInBuildSettings(CarScenePath);
@@ -101,6 +102,13 @@ namespace ApexGTWorld.EditorTools
         {
             GameObject offline = new GameObject("Offline Game Manager");
             offline.AddComponent<OfflineGameManager>();
+        }
+
+        private static void AddOfflineGameFlow()
+        {
+            GameObject flow = new GameObject("Offline Game Flow");
+            flow.AddComponent<OfflineRaceCourse>();
+            flow.AddComponent<OfflineGameFlow>();
         }
 
         private static void CreateCar()
