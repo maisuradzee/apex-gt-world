@@ -60,7 +60,7 @@ dotnet build Server/RaceServer.Host/ApexGtWorld.RaceServer.Host.csproj --configu
 
 Publish locally on Windows with `Windows/Publish-RaceServer.ps1`, then use `Windows/Install-RaceServerService.ps1` as Administrator. GitHub Actions also publishes the `apex-gt-world-race-server-win-x64` self-contained artifact for Windows x64; extract it to a folder and run the included installer. Set the environment variables first using `Windows/Configure-RaceServerEnvironment.ps1`.
 
-The GitHub Actions workflow builds the .NET server library and Windows Service host, publishes the Windows x64 service artifact, and runs both HTTP contract tests (with a fake handler) and race-session domain/coordinator tests. The current runtime is a lifecycle/checkpoint domain component only; it does not implement simulation ticks, vehicle physics, network replication, reconnect handling, telemetry validation or anti-cheat.
+The GitHub Actions workflow builds the .NET server library and Windows Service host, publishes the self-contained Windows x64 service artifact (including environment and installation scripts), and runs both HTTP contract tests (with a fake handler) and race-session domain/coordinator tests. The current runtime is a lifecycle/checkpoint domain component only; it does not implement simulation ticks, vehicle physics, network replication, reconnect handling, telemetry validation or anti-cheat.
 
 
 ## Tests
