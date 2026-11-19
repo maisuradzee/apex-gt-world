@@ -32,13 +32,14 @@ namespace ApexGTWorld.RaceServer
             string discipline,
             Guid requestKey,
             IReadOnlyList<string> orderedCheckpointIds,
+            int lapCount = 1,
             CancellationToken cancellationToken = default)
         {
             if (control is null)
                 throw new ArgumentNullException(nameof(control));
 
             // Validate local course configuration before creating a remote row.
-            _ = new RaceSessionRuntime(Guid.NewGuid(), regionId, discipline, orderedCheckpointIds);
+            _ = new RaceSessionRuntime(Guid.NewGuid(), regionId, discipline, orderedCheckpointIds, lapCount);
 
             var response = await control.CreateSessionAsync(
                 regionId,
@@ -62,7 +63,7 @@ namespace ApexGTWorld.RaceServer
                 throw new InvalidOperationException("Race control did not return a valid created session ID.");
             }
 
-            var runtime = new RaceSessionRuntime(sessionId, regionId, discipline, orderedCheckpointIds);
+            var runtime = new RaceSessionRuntime(sessionId, regionId, discipline, orderedCheckpointIds, lapCount);
             return new RaceSessionCoordinator(control, runtime);
         }
 
