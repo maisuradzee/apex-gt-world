@@ -6,6 +6,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = [
     "README.md",
+    "ProjectSettings/ProjectVersion.txt",
     "Documentation/ARCHITECTURE.md",
     "Assets/Scripts/VehiclePhysics/VehicleController.cs",
     "Assets/Scripts/MotorcyclePhysics/MotorcyclePrototypeController.cs",
@@ -40,6 +41,13 @@ for relative in REQUIRED:
 
 with (ROOT / "Packages/manifest.json").open(encoding="utf-8") as f:
     manifest = json.load(f)
+version_file = ROOT / "ProjectSettings/ProjectVersion.txt"
+if not version_file.is_file() or "m_EditorVersion: 6000.3.28f1" not in version_file.read_text(encoding="utf-8"):
+    raise SystemExit("Project must be pinned to Unity 6.3 LTS 6000.3.28f1")
+if manifest.get("dependencies", {}).get("com.unity.render-pipelines.universal") != "17.3.0":
+    raise SystemExit("URP 17.3.0 must be pinned in Packages/manifest.json")
+if manifest.get("dependencies", {}).get("com.unity.ugui") != "2.0.0":
+    raise SystemExit("uGUI 2.0.0 must be pinned in Packages/manifest.json")
 if not isinstance(manifest.get("dependencies"), dict):
     raise SystemExit("Packages/manifest.json must contain a dependencies object")
 
