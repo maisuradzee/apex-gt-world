@@ -24,3 +24,5 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Build dedicated race-server control client
         run: dotnet build Server/RaceServer/ApexGtWorld.RaceServer.csproj --configuration Release
+      - name: Run race-server control contract tests
+        run: dotnet run --project Server/RaceServer.Tests/ApexGTWorld.RaceServer.Tests.csproj --configuration Release

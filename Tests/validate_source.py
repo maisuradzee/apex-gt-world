@@ -352,6 +352,21 @@ for fragment in [
     if fragment not in private_policy_sql:
         raise SystemExit("Missing explicit private race-request deny policy: " + fragment)
 
+# Automated race-server HTTP contract tests exercise create, start and finalize requests.
+race_tests = (ROOT / "Server/RaceServer.Tests/Program.cs").read_text(encoding="utf-8")
+for fragment in [
+    "CreateSessionAsync",
+    "StartSessionAsync",
+    "FinalizeSessionAsync",
+    "x-apex-race-server-token",
+    "request_key",
+    "reward_credits",
+    "new Uri(\"http://insecure.example\")",
+    "Guid.Empty",
+]:
+    if fragment not in race_tests:
+        raise SystemExit("Missing race-server contract test: " + fragment)
+
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github", ROOT / "Server", ROOT / "supabase"):
     for path in base.rglob("*"):
