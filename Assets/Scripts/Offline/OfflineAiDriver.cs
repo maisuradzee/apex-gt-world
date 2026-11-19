@@ -8,7 +8,7 @@ namespace ApexGTWorld.Offline
     {
         [SerializeField, Min(1f)] private float speedMetersPerSecond = 15f;
         [SerializeField, Min(0.1f)] private float turnSpeedDegrees = 220f;
-        [SerializeField, Min(0.1f)] private float reachDistance = 2.2f;
+        [SerializeField, Min(0.1f)] private float reachDistance = 0.45f;
 
         private Rigidbody body;
         private Transform[] waypoints;
