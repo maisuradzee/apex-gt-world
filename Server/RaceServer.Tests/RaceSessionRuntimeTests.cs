@@ -60,6 +60,7 @@ internal static class RaceSessionRuntimeTests
         Check(results[1].FinishTimeMs == 23 && results[1].RewardCredits == 500, "second finisher timing and reward");
         Check(results[2].UserId == third && results[2].Placement == 3, "non-finisher is placed after finishers");
         Check(results[2].FinishTimeMs is null && results[2].RewardCredits == 0, "DNF result has no finish time");
+        Check(runtime.BuildFinalResults(_ => 0).Count == 3, "cached DNF result can be read");
         Check(results.All(r => r.Score == 0), "unimplemented scoring is not fabricated");
 
         var cached = runtime.BuildFinalResults(_ => throw new InvalidOperationException("cached results should not recalculate"));
