@@ -13,7 +13,7 @@ namespace ApexGTWorld.Offline
         [Min(2)] public int checkpointCount = 4;
         [Min(0)] public long rewardCredits = 500;
         [Min(0)] public long rewardXp = 250;
-        [Min(0f)] public float rewardDistanceMeters = 400f;
+        [Min(0f)] public float rewardDistanceMeters = 272f;
     }
 
     /// <summary>
