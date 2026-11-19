@@ -18,6 +18,14 @@ namespace ApexGTWorld.UI
             cameraSwitcher = switcher;
         }
 
+        public void ResetInput()
+        {
+            leftPressed = false;
+            rightPressed = false;
+            state = new VehicleInput();
+            Publish();
+        }
+
         public void Apply(TouchControlAction action, bool pressed)
         {
             switch (action)
