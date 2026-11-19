@@ -22,7 +22,21 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - name: Build dedicated race-server control client
+      - name: Build dedicated race-server control library
         run: dotnet build Server/RaceServer/ApexGtWorld.RaceServer.csproj --configuration Release
+      - name: Build Windows Service host
+        run: dotnet build Server/RaceServer.Host/ApexGtWorld.RaceServer.Host.csproj --configuration Release
+      - name: Publish self-contained Windows x64 service artifact
+        run: dotnet publish Server/RaceServer.Host/ApexGtWorld.RaceServer.Host.csproj --configuration Release --runtime win-x64 --self-contained true --output artifacts/race-server-win-x64
+      - name: Include Windows deployment scripts
+        run: |
+          Copy-Item Server/RaceServer/Windows/Configure-RaceServerEnvironment.ps1 artifacts/race-server-win-x64/
+          Copy-Item Server/RaceServer/Windows/Install-RaceServerService.ps1 artifacts/race-server-win-x64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apex-gt-world-race-server-win-x64
+          path: artifacts/race-server-win-x64/
+          if-no-files-found: error
+          retention-days: 14
       - name: Run race-server control contract tests
         run: dotnet run --project Server/RaceServer.Tests/ApexGTWorld.RaceServer.Tests.csproj --configuration Release
