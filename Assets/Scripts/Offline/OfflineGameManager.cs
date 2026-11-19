@@ -13,7 +13,7 @@ namespace ApexGTWorld.Offline
     {
         private static OfflineGameManager instance;
 
-        [SerializeField] private bool showOfflineStatus = true;
+        [SerializeField] private bool showOfflineStatus = false;
         [SerializeField, Min(1f)] private float autosaveIntervalSeconds = 30f;
 
         private OfflinePlayerProfile profile;
