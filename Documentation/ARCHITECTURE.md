@@ -10,6 +10,9 @@ The delivery order is offline-first: build a complete local single-player drivin
 - `OfflinePlayerProfile` stores local credits, career XP/level, vehicle ownership/selection, unlocked regions, completed events and distance.
 - `OfflineSaveStore` writes a versioned JSON save in `Application.persistentDataPath`, maintains a recovery backup and restores the backup if the primary save is invalid.
 - `OfflineGameManager` owns local progression, periodic saves, pause/quit saves and local event idempotency.
+- `OfflineGameFlow` supplies Main Menu, Free Drive, Career, Garage, Settings, Pause and Results screens.
+- `OfflineRaceCourse` creates a compact four-gate circuit and a three-driver AI grid. `OfflineRaceSession` validates checkpoint order and lap completion; the local career event pays its one-time reward only after the player finishes.
+- Garage upgrades persist engine, handling and brake levels and apply them to the prototype `VehicleController` tuning.
 - Local save data is editable by the device owner and is not authoritative for online rewards, leaderboards, purchases or competitive race results.
 
 ### Unity client
