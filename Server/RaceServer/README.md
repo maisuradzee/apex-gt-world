@@ -14,7 +14,7 @@ The Supabase-managed `SUPABASE_SERVICE_ROLE_KEY` stays inside the Edge Function.
 ## API lifecycle
 1. `CreateSessionAsync(regionId, discipline, requestKey)` creates a session in `created`. Supply one stable non-empty GUID per logical create request; reuse it for network retries. The same key/parameters return the same session; changing region or discipline while reusing the key is rejected.
 2. `StartSessionAsync(sessionId)` changes it to `running`; repeated start while running is safe.
-3. Dedicated authoritative simulation runs on the race server.
+3. The race runtime tracks entrants, server timestamps, ordered checkpoint progress and terminal states; the host's authoritative vehicle physics and movement validation still need to be integrated.
 4. `FinalizeSessionAsync(sessionId, results)` submits validated placements, finish times, scores and server-calculated Credits payouts atomically.
 5. The player separately claims their own result through the JWT-protected `settle-race-result` function.
 
@@ -37,7 +37,7 @@ The host must call checkpoint methods only after authoritative server-side posit
 dotnet build Server/RaceServer/ApexGtWorld.RaceServer.csproj
 ```
 
-The GitHub Actions workflow builds the client and runs contract tests with a fake HTTP handler. This is still the control-plane client only; it does not implement simulation ticks, physics, replication, participant lifecycle, result calculation or anti-cheat.
+The GitHub Actions workflow builds the .NET server library and runs both HTTP contract tests (with a fake handler) and race-session domain tests. The current runtime is a lifecycle/checkpoint domain component only; it does not implement simulation ticks, vehicle physics, network replication, reconnect handling, telemetry validation or anti-cheat.
 
 
 ## Tests
