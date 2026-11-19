@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -35,7 +36,7 @@ namespace ApexGTWorld.EditorTools
             CreateCar();
 
             EditorSceneManager.SaveScene(scene, CarScenePath);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(CarScenePath, true) };
+            RegisterSceneInBuildSettings(CarScenePath);
             EditorUtility.DisplayDialog("Car scene generated",
                 "Bootstrap scene generated. Use WASD / arrows in the Editor or touch controls on Android. WheelCollider tuning and device testing are still required.", "OK");
         }
@@ -90,7 +91,7 @@ namespace ApexGTWorld.EditorTools
 
             BuildMotorcycleMobileControls(bikeController, cameraSwitcher);
             EditorSceneManager.SaveScene(scene, BikeScenePath);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(BikeScenePath, true) };
+            RegisterSceneInBuildSettings(BikeScenePath);
             EditorUtility.DisplayDialog("Motorcycle scene generated",
                 "MotorcycleTest scene generated. This is an early rigid-body/lean experiment, not production motorcycle simulation.", "OK");
         }
@@ -321,6 +322,23 @@ namespace ApexGTWorld.EditorTools
             Material material = new Material(shader);
             material.color = color;
             return material;
+        }
+
+        private static void RegisterSceneInBuildSettings(string scenePath)
+        {
+            var scenes = new List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
+            for (int i = 0; i < scenes.Count; i++)
+            {
+                if (string.Equals(scenes[i].path, scenePath, System.StringComparison.Ordinal))
+                {
+                    scenes[i] = new EditorBuildSettingsScene(scenePath, true);
+                    EditorBuildSettings.scenes = scenes.ToArray();
+                    return;
+                }
+            }
+
+            scenes.Add(new EditorBuildSettingsScene(scenePath, true));
+            EditorBuildSettings.scenes = scenes.ToArray();
         }
 
         private static void EnsureFolder(string path)

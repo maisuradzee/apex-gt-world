@@ -13,6 +13,7 @@ REQUIRED = [
     "Database/Migrations/0001_apex_core.sql",
     "Database/Migrations/0002_apex_security_and_region_indexes.sql",
     "Database/Migrations/0003_apex_auth_user_bootstrap.sql",
+    "Database/Migrations/0004_apex_service_role_privileges.sql",
 ]
 
 for relative in REQUIRED:
@@ -112,6 +113,30 @@ if signup_start < 0 or signup_end < 0 or "SupabaseSignUpRequest" not in client_s
     raise SystemExit("Sign-up must send display_name metadata for the Auth bootstrap trigger")
 if "SupabaseSignUpMetadata" not in dto_source:
     raise SystemExit("Sign-up metadata DTO is missing")
+
+# Trusted backend access must be granted explicitly; client grants remain narrow.
+service_sql = (ROOT / "Database/Migrations/0004_apex_service_role_privileges.sql").read_text(encoding="utf-8").lower()
+required_service_grants = [
+    "grant usage on schema public to service_role",
+    "grant all privileges on all tables in schema public to service_role",
+    "grant all privileges on all sequences in schema public to service_role",
+    "grant execute on all functions in schema public to service_role",
+    "grant usage on schema apex_private to service_role",
+    "grant all privileges on all tables in schema apex_private to service_role",
+    "alter default privileges for role postgres in schema public",
+    "grant all privileges on tables to service_role",
+    "alter default privileges for role postgres in schema apex_private",
+]
+for fragment in required_service_grants:
+    if fragment not in service_sql:
+        raise SystemExit("Missing trusted backend privilege statement: " + fragment)
+
+# Scene generators must add their scene without discarding other enabled build scenes.
+scene_source = (ROOT / "Assets/Editor/StarterSceneGenerator.cs").read_text(encoding="utf-8")
+if scene_source.count("RegisterSceneInBuildSettings(") < 3:
+    raise SystemExit("Both starter scene generators must register scenes through the preserving helper")
+if "EditorBuildSettings.scenes = new[]" in scene_source:
+    raise SystemExit("Scene generation must not replace the existing Build Settings scene list")
 
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
