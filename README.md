@@ -24,7 +24,8 @@ The Unity starter source tree is committed to `main`. GitHub Actions validates s
 - `Assets/Editor` — starter scene generators and Android build menu.
 - `Database/Migrations` — Supabase schema, security, Auth bootstrap, wallet and race lifecycle.
 - `supabase/functions` — JWT-protected reward claim and secret-protected race control functions.
-- `Server/RaceServer` — .NET 8 race-server control HTTP client.
+- `Server/RaceServer` — .NET 8 race-session runtime and protected Supabase control client.
+- `Server/RaceServer.Tests` — HTTP contract and race-session domain tests.
 - `Documentation` and `Tests` — architecture, setup, acceptance tests and validators.
 
 ## Unity setup
