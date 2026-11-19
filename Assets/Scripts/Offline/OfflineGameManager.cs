@@ -120,6 +120,43 @@ namespace ApexGTWorld.Offline
             return false;
         }
 
+        public bool TryPurchaseUpgrade(string upgradeId, long price, int maximumLevel = 5)
+        {
+            if (profile == null || string.IsNullOrWhiteSpace(upgradeId) ||
+                price < 0L || price > 1000000000L || maximumLevel < 1 || maximumLevel > 10)
+                return false;
+            if (profile.credits < price) return false;
+
+            int previousLevel;
+            switch (upgradeId.Trim().ToLowerInvariant())
+            {
+                case "engine": previousLevel = profile.engineUpgradeLevel; break;
+                case "handling": previousLevel = profile.handlingUpgradeLevel; break;
+                case "brakes": previousLevel = profile.brakeUpgradeLevel; break;
+                default: return false;
+            }
+            if (previousLevel >= maximumLevel) return false;
+
+            long previousCredits = profile.credits;
+            profile.credits -= price;
+            switch (upgradeId.Trim().ToLowerInvariant())
+            {
+                case "engine": profile.engineUpgradeLevel++; break;
+                case "handling": profile.handlingUpgradeLevel++; break;
+                case "brakes": profile.brakeUpgradeLevel++; break;
+            }
+
+            if (SaveNow()) return true;
+            profile.credits = previousCredits;
+            switch (upgradeId.Trim().ToLowerInvariant())
+            {
+                case "engine": profile.engineUpgradeLevel = previousLevel; break;
+                case "handling": profile.handlingUpgradeLevel = previousLevel; break;
+                case "brakes": profile.brakeUpgradeLevel = previousLevel; break;
+            }
+            return false;
+        }
+
         public bool UnlockRegion(string regionId)
         {
             if (profile == null || string.IsNullOrWhiteSpace(regionId)) return false;
