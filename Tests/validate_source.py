@@ -434,6 +434,23 @@ for fragment in [
 if "RaceSessionCoordinatorTests.RunAsync();" not in (ROOT / "Server/RaceServer.Tests/Program.cs").read_text(encoding="utf-8"):
     raise SystemExit("Race-session coordinator tests are not invoked by the CI test runner")
 
+# Windows race-server setup script must hide the secret and write only machine environment variables.
+windows_setup = (ROOT / "Server/RaceServer/Windows/Configure-RaceServerEnvironment.ps1").read_text(encoding="utf-8")
+for fragment in [
+    "Read-Host",
+    "-AsSecureString",
+    "SecureStringToBSTR",
+    "ZeroFreeBSTR",
+    'SetEnvironmentVariable("APEX_RACE_CONTROL_URL"',
+    'SetEnvironmentVariable("APEX_RACE_SERVER_TOKEN"',
+    '"Machine"',
+    "value hidden",
+]:
+    if fragment not in windows_setup:
+        raise SystemExit("Missing secure Windows race-server configuration statement: " + fragment)
+if "Write-Host $token" in windows_setup or "Write-Output $token" in windows_setup:
+    raise SystemExit("Windows race-server setup must never print the secret token")
+
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github", ROOT / "Server", ROOT / "supabase"):
     for path in base.rglob("*"):
