@@ -3,7 +3,7 @@
 Android-first, mobile-optimized open-world motorsport and roleplay game foundation.
 
 ## Current project state
-The Unity starter source tree is committed to `main`. GitHub Actions validates source/security rules and now type-checks Edge Functions plus builds the .NET race-server control client. This remains a **starter foundation**, not a completed playable game.
+The Unity starter source tree is committed to `main`. GitHub Actions validates source/security rules, type-checks Edge Functions, builds the .NET race-server library and runs its HTTP contract plus race-session domain tests. This remains a **starter foundation**, not a completed playable game.
 
 ## Product and technical baseline
 - Android first; keep architecture iOS-compatible.
@@ -58,4 +58,4 @@ The dedicated race simulation process, Unity runtime tests, APK build and device
 ## GitHub
 Repository: https://github.com/maisuradzee/apex-gt-world
 
-CI checks source structure, secret exposure, migration security and server-only operations, type-checks both Deno functions, builds the .NET 8 race-server control client, and runs HTTP contract tests for create/start/finalize, request keys, token headers and input guards.
+CI checks source structure, secret exposure, migration security and server-only operations, type-checks both Deno functions, builds the .NET 8 race-server control client, and runs HTTP contract tests for create/start/finalize, request keys, token headers and input guards, plus race-runtime tests for player limits, checkpoint progression, server timing, DNF/DQ and deterministic results.
