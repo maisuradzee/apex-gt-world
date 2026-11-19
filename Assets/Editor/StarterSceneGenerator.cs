@@ -11,7 +11,7 @@ using ApexGTWorld.VehiclePhysics;
 using ApexGTWorld.CameraSystem;
 using ApexGTWorld.UI;
 using ApexGTWorld.MotorcyclePhysics;
-using ApexGTWorld.Backend;
+using ApexGTWorld.Offline;
 
 namespace ApexGTWorld.EditorTools
 {
@@ -30,7 +30,7 @@ namespace ApexGTWorld.EditorTools
             EnsureFolder("Assets/Scenes");
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             new GameObject("GameBootstrap").AddComponent<GameBootstrap>();
-            AddSupabaseDebugConsole();
+            AddOfflineGameManager();
             CreateLighting();
             CreateTestPad("Car Test Pad");
             CreateCar();
@@ -38,7 +38,7 @@ namespace ApexGTWorld.EditorTools
             EditorSceneManager.SaveScene(scene, CarScenePath);
             RegisterSceneInBuildSettings(CarScenePath);
             EditorUtility.DisplayDialog("Car scene generated",
-                "Bootstrap scene generated. Use WASD / arrows in the Editor or touch controls on Android. WheelCollider tuning and device testing are still required.", "OK");
+                "Bootstrap scene generated in offline mode. Use WASD / arrows in the Editor or touch controls on Android. Local profile progress saves on this device; vehicle tuning and device testing are still required.", "OK");
         }
 
         [MenuItem("APEX GT WORLD/Setup/Generate Motorcycle Test Scene")]
@@ -51,7 +51,7 @@ namespace ApexGTWorld.EditorTools
             EnsureFolder("Assets/Scenes");
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             new GameObject("GameBootstrap").AddComponent<GameBootstrap>();
-            AddSupabaseDebugConsole();
+            AddOfflineGameManager();
             CreateLighting();
             CreateTestPad("Motorcycle Test Pad");
 
@@ -93,18 +93,14 @@ namespace ApexGTWorld.EditorTools
             EditorSceneManager.SaveScene(scene, BikeScenePath);
             RegisterSceneInBuildSettings(BikeScenePath);
             EditorUtility.DisplayDialog("Motorcycle scene generated",
-                "MotorcycleTest scene generated. This is an early rigid-body/lean experiment, not production motorcycle simulation.", "OK");
+                "MotorcycleTest scene generated in offline mode. This is an early rigid-body/lean experiment, not production motorcycle simulation.", "OK");
         }
 
 
-        private static void AddSupabaseDebugConsole()
+        private static void AddOfflineGameManager()
         {
-            GameObject backend = new GameObject("Supabase Development Client");
-            SupabaseRestClient client = backend.AddComponent<SupabaseRestClient>();
-            SupabaseDebugPanel panel = backend.AddComponent<SupabaseDebugPanel>();
-            SerializedObject serialized = new SerializedObject(panel);
-            serialized.FindProperty("client").objectReferenceValue = client;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
+            GameObject offline = new GameObject("Offline Game Manager");
+            offline.AddComponent<OfflineGameManager>();
         }
 
         private static void CreateCar()
