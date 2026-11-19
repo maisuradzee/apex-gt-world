@@ -258,8 +258,10 @@ namespace ApexGTWorld.Offline
                 GUI.Label(new Rect(320f, 92f, 240f, 24f), "TIME " + race.ElapsedSeconds.ToString("0.000") + " SEC");
             }
 
-            GUI.Label(new Rect(20f, Screen.height - 34f, 590f, 24f),
-                "WASD / ARROWS DRIVE   |   SPACE BRAKE   |   LEFT SHIFT HANDBRAKE   |   V CAMERA");
+            string controls = Application.isMobilePlatform
+                ? "TOUCH TO DRIVE  |  CAMERA BUTTON TO SWITCH VIEW"
+                : "WASD / ARROWS DRIVE   |   SPACE BRAKE   |   LEFT SHIFT HANDBRAKE   |   V CAMERA";
+            GUI.Label(new Rect(20f, Screen.height - 34f, 660f, 24f), controls);
             if (GUI.Button(new Rect(Screen.width - 150f, 18f, 128f, 48f), "PAUSE"))
                 PauseGame();
         }
@@ -353,7 +355,7 @@ namespace ApexGTWorld.Offline
                 vehicle.SetInput(new VehicleInput());
             if (vehicle != null) vehicle.enabled = enabled;
             if (keyboardInput != null) keyboardInput.enabled = enabled;
-            if (hudRoot != null) hudRoot.SetActive(enabled);
+            if (hudRoot != null) hudRoot.SetActive(false);
             if (touchRoot != null) touchRoot.SetActive(enabled);
         }
 
