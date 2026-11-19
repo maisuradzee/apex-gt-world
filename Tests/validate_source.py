@@ -211,6 +211,7 @@ for relative, fragments in [
     ("Assets/Scripts/Offline/OfflineRaceCheckpoint.cs", ["OnTriggerEnter", "TryPassCheckpoint"]),
     ("Assets/Scripts/Offline/OfflineRaceParticipant.cs", ["NextCheckpointIndex", "CompletedLaps", "TryPassCheckpoint"]),
     ("Assets/Scripts/Offline/OfflineAiDriver.cs", ["BeginDriving", "MovePosition", "MoveRotation"]),
+    ("Assets/Scripts/UI/TouchVehicleInput.cs", ["ResetInput", "state = new VehicleInput()"]),
 ]:
     source = (ROOT / relative).read_text(encoding="utf-8")
     for fragment in fragments:
