@@ -140,15 +140,22 @@ namespace ApexGTWorld.RaceServer
                 if (!string.Equals(expected, checkpointId, StringComparison.Ordinal))
                     throw new InvalidOperationException("Checkpoint is out of order or does not belong to this course.");
 
-                entrant.NextCheckpointIndex++;
-                entrant.LastEventAt = serverEventTime;
-
-                if (entrant.NextCheckpointIndex == _checkpoints.Length)
+                var completesCourse = entrant.NextCheckpointIndex == _checkpoints.Length - 1;
+                long? finishTimeMs = null;
+                if (completesCourse)
                 {
                     var elapsed = (serverEventTime - _startedAt!.Value).TotalMilliseconds;
                     if (elapsed < 1)
                         throw new InvalidOperationException("Finish timestamp must be at least 1 ms after race start.");
-                    entrant.FinishTimeMs = checked((long)Math.Round(elapsed, MidpointRounding.AwayFromZero));
+                    finishTimeMs = checked((long)Math.Round(elapsed, MidpointRounding.AwayFromZero));
+                }
+
+                // Validate the entire event before mutating participant progress.
+                entrant.NextCheckpointIndex++;
+                entrant.LastEventAt = serverEventTime;
+                if (completesCourse)
+                {
+                    entrant.FinishTimeMs = finishTimeMs;
                     entrant.Status = RaceEntrantStatus.Finished;
                 }
             }
