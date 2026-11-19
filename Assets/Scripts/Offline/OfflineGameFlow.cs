@@ -250,6 +250,7 @@ namespace ApexGTWorld.Offline
                 GUI.Box(new Rect(14f, 84f, 290f, 72f), GUIContent.none);
                 GUI.Label(new Rect(26f, 92f, 270f, 24f), "LAP " + lap + " / " + race.Definition.laps);
                 GUI.Label(new Rect(26f, 119f, 270f, 24f), "NEXT CHECKPOINT " + nextGate + " / " + race.Definition.checkpointCount);
+                GUI.Label(new Rect(320f, 92f, 240f, 24f), "TIME " + race.ElapsedSeconds.ToString("0.000") + " SEC");
             }
 
             GUI.Label(new Rect(20f, Screen.height - 34f, 590f, 24f),
