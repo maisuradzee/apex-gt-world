@@ -42,7 +42,7 @@ if ($targetVersionText -notmatch [regex]::Escape($expectedEditor)) {
 Write-Host "Merging APEX GT WORLD Assets into: $targetRoot" -ForegroundColor Cyan
 
 # Merge source content without deleting files created by the URP template.
-& robocopy $sourceAssets $targetAssets /E /COPY:DAT /DCOPY:DAT /R:2 /W:1
+& robocopy $sourceAssets $targetAssets /E /COPY:DAT /DCOPY:DAT /R:2 /W:1 /XD (Join-Path $sourceAssets 'Settings')
 $copyExitCode = $LASTEXITCODE
 if ($copyExitCode -ge 8) {
     throw "Asset merge failed (robocopy exit code $copyExitCode)."
