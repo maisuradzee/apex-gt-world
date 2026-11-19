@@ -1,7 +1,7 @@
 # Install and start the APEX GT WORLD race-server Windows Service.
 [CmdletBinding()]
 param(
-    [string]$PublishDirectory = (Join-Path $PSScriptRoot "publish"),
+    [string]$PublishDirectory,
     [string]$ServiceName = "APEXGtWorldRaceServer"
 )
 
@@ -12,6 +12,17 @@ $principal = New-Object Security.Principal.WindowsPrincipal(
 )
 if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     throw "Open PowerShell with Run as administrator."
+}
+
+if ([string]::IsNullOrWhiteSpace($PublishDirectory)) {
+    $scriptDirectoryExe = Join-Path $PSScriptRoot "ApexGtWorld.RaceServer.Host.exe"
+    $nestedPublishExe = Join-Path $PSScriptRoot "publish\ApexGtWorld.RaceServer.Host.exe"
+    if (Test-Path -LiteralPath $scriptDirectoryExe -PathType Leaf) {
+        $PublishDirectory = $PSScriptRoot
+    }
+    else {
+        $PublishDirectory = Join-Path $PSScriptRoot "publish"
+    }
 }
 
 $exe = Join-Path ([System.IO.Path]::GetFullPath($PublishDirectory)) "ApexGtWorld.RaceServer.Host.exe"
@@ -34,7 +45,12 @@ if ($null -ne $existing) {
 }
 
 $binaryPath = '"' + $exe + '"'
-New-Service -Name $ServiceName -BinaryPathName $binaryPath -DisplayName "APEX GT WORLD Race Server" -Description "APEX GT WORLD dedicated race-server host." -StartupType Automatic | Out-Null
+New-Service -Name $ServiceName -BinaryPathName $binaryPath -DisplayName "APEX GT WORLD Race Server" -StartupType Automatic | Out-Null
+& sc.exe description $ServiceName "APEX GT WORLD dedicated race-server host."
+if ($LASTEXITCODE -ne 0) {
+    & sc.exe delete $ServiceName | Out-Null
+    throw "Could not set the Windows service description."
+}
 
 # Use the least-privileged built-in service identity required for this host.
 & sc.exe config $ServiceName obj= "NT AUTHORITY\LocalService" password= ""
