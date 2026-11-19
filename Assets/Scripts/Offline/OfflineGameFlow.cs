@@ -20,6 +20,7 @@ namespace ApexGTWorld.Offline
         private GameObject touchRoot;
         private VehicleController vehicle;
         private EditorVehicleInput keyboardInput;
+        private TouchVehicleInput touchInput;
         private CameraModeSwitcher cameraSwitcher;
         private OfflineRaceParticipant playerParticipant;
         private OfflineRaceCourse raceCourse;
@@ -42,6 +43,7 @@ namespace ApexGTWorld.Offline
             playerParticipant = playerRoot.GetComponent<OfflineRaceParticipant>();
             hudRoot = GameObject.Find("Prototype HUD");
             touchRoot = GameObject.Find("Car Mobile Controls");
+            touchInput = touchRoot != null ? touchRoot.GetComponent<TouchVehicleInput>() : null;
             raceCourse = GetComponent<OfflineRaceCourse>();
 
             if (raceCourse != null)
@@ -351,8 +353,11 @@ namespace ApexGTWorld.Offline
 
         private void SetGameplayEnabled(bool enabled)
         {
-            if (!enabled && vehicle != null)
-                vehicle.SetInput(new VehicleInput());
+            if (!enabled)
+            {
+                if (vehicle != null) vehicle.SetInput(new VehicleInput());
+                if (touchInput != null) touchInput.ResetInput();
+            }
             if (vehicle != null) vehicle.enabled = enabled;
             if (keyboardInput != null) keyboardInput.enabled = enabled;
             if (hudRoot != null) hudRoot.SetActive(false);
