@@ -12,13 +12,13 @@ In the GTWORLD Supabase Dashboard, add the same token as an Edge Function secret
 The Supabase-managed `SUPABASE_SERVICE_ROLE_KEY` stays inside the Edge Function. The race server does not receive or store it.
 
 ## API lifecycle
-1. `CreateSessionAsync(regionId, discipline)` creates a session in `created`.
+1. `CreateSessionAsync(regionId, discipline, requestKey)` creates a session in `created`. Supply one stable non-empty GUID per logical create request; reuse it for network retries. The same key/parameters return the same session; changing region or discipline while reusing the key is rejected.
 2. `StartSessionAsync(sessionId)` changes it to `running`; repeated start while running is safe.
 3. Dedicated authoritative simulation runs on the race server.
 4. `FinalizeSessionAsync(sessionId, results)` submits validated placements, finish times, scores and server-calculated Credits payouts atomically.
 5. The player separately claims their own result through the JWT-protected `settle-race-result` function.
 
-The SQL RPC validates the result set and ensures identical retries do not duplicate or overwrite results.
+The create RPC and finalize RPC are idempotent. Create uses a private request-key table; finalize accepts identical retries and rejects a changed result set.
 
 ## Build
 ```bash

@@ -9,7 +9,7 @@
 Unity uses the supplied publishable key. Never store `service_role`, `sb_secret_...`, database password or server token in Unity or source control.
 
 ## Applied migrations
-All eight migrations 0001–0008 are applied. They establish 11 public RLS tables, a private secret table, Auth bootstrap, service-role grants, idempotent wallet settlement, server-owned race reward amount and atomic race start/finalize RPCs.
+All nine migrations 0001–0009 are applied. They establish 11 public RLS tables, a private secret table, Auth bootstrap, service-role grants, idempotent wallet settlement, server-owned race reward amount and atomic race start/finalize RPCs.
 
 ## Verified DB boundaries
 - Client roles cannot write wallet balances, ledger, career progress or race-result rows.
@@ -32,6 +32,7 @@ All eight migrations 0001–0008 are applied. They establish 11 public RLS table
 - ACTIVE, platform JWT verification disabled by design; function performs its own shared-secret authentication.
 - Header: `x-apex-race-server-token`.
 - Operations: `create`, `start`, `finalize`.
+- Create requires a stable `request_key` UUID and calls the private idempotent create-session RPC; the same key/parameters return the same session.
 - Function calls service-only SQL RPCs or creates a session using its internal service-role client.
 - It never accepts player JWTs or client game requests as trusted server authority.
 

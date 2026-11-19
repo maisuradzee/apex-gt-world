@@ -83,31 +83,29 @@ Deno.serve(async (request: Request) => {
 
   if (body.operation === "create") {
     if (
-      !hasOnlyKeys(body, ["operation", "region_id", "discipline"]) ||
+      !hasOnlyKeys(body, ["operation", "region_id", "discipline", "request_key"]) ||
       typeof body.region_id !== "string" ||
       body.region_id.length < 1 ||
       body.region_id.length > 80 ||
       typeof body.discipline !== "string" ||
-      !allowedDisciplines.has(body.discipline)
+      !allowedDisciplines.has(body.discipline) ||
+      !isUuid(body.request_key)
     ) {
-      return jsonResponse(400, { error: "Create requires a valid region_id and discipline" });
+      return jsonResponse(400, { error: "Create requires region_id, discipline and a UUID request_key" });
     }
 
-    const { data, error } = await admin
-      .from("apex_race_sessions")
-      .insert({
-        region_id: body.region_id,
-        discipline: body.discipline,
-        status: "created",
-      })
-      .select("id,region_id,discipline,status,created_at")
-      .single();
+    const { data, error } = await admin.rpc("apex_server_create_race_session", {
+      p_region_id: body.region_id,
+      p_discipline: body.discipline,
+      p_request_key: body.request_key,
+    });
 
     if (error) {
-      console.error("Race session creation failed:", error.message);
+      console.error("Race session creation RPC failed:", error.message);
       return jsonResponse(409, { error: "Race session could not be created" });
     }
-    return jsonResponse(201, { ok: true, operation: "create", session: data });
+    const result = Array.isArray(data) ? data[0] : data;
+    return jsonResponse(200, { ok: true, operation: "create", session: result });
   }
 
   if (!isUuid(body.session_id)) {

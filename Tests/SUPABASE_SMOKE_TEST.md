@@ -14,7 +14,9 @@ Run these tests against the dedicated APEX GT WORLD project only.
 ## Race control (dedicated server only)
 - [ ] Set the same strong `APEX_RACE_SERVER_TOKEN` in GTWORLD Edge Function Secrets and the dedicated race-server host environment.
 - [ ] Configure `APEX_RACE_CONTROL_URL`.
-- [ ] Call create; verify session status `created`.
+- [ ] Call create with a stable `request_key` UUID; verify session status `created`.
+- [ ] Repeat create with the same key and parameters; verify the same session ID is returned and no second session appears.
+- [ ] Reuse the same request key with a different region/discipline; verify rejection.
 - [ ] Call start; verify session status `running`; repeat start safely.
 - [ ] Run the authoritative simulation and calculate results/payout on the server.
 - [ ] Call finalize; verify `validated=true` result rows and session `finished`.

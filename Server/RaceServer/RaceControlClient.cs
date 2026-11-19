@@ -52,10 +52,13 @@ namespace ApexGTWorld.RaceServer
         public Task<RaceControlResponse> CreateSessionAsync(
             string regionId,
             string discipline,
+            Guid requestKey,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(regionId))
                 throw new ArgumentException("Region ID is required.", nameof(regionId));
+            if (requestKey == Guid.Empty)
+                throw new ArgumentException("Stable request key is required for retry-safe race creation.", nameof(requestKey));
             if (discipline is not ("circuit" or "time_attack" or "drift" or "endurance" or "motorcycle"))
                 throw new ArgumentOutOfRangeException(nameof(discipline), "Unsupported race discipline.");
 
@@ -63,7 +66,8 @@ namespace ApexGTWorld.RaceServer
             {
                 Operation = "create",
                 RegionId = regionId,
-                Discipline = discipline
+                Discipline = discipline,
+                RequestKey = requestKey
             }, cancellationToken);
         }
 
@@ -132,6 +136,7 @@ namespace ApexGTWorld.RaceServer
         [JsonPropertyName("operation")] public string Operation { get; init; } = "create";
         [JsonPropertyName("region_id")] public string RegionId { get; init; } = string.Empty;
         [JsonPropertyName("discipline")] public string Discipline { get; init; } = string.Empty;
+        [JsonPropertyName("request_key")] public Guid RequestKey { get; init; }
     }
 
     public sealed class StartRaceSessionRequest

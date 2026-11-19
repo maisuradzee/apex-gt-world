@@ -18,6 +18,7 @@ REQUIRED = [
     "Database/Migrations/0006_apex_race_reward_settlement.sql",
     "Database/Migrations/0007_apex_authoritative_race_lifecycle.sql",
     "Database/Migrations/0008_apex_race_result_integer_validation.sql",
+    "Database/Migrations/0009_apex_idempotent_race_session_creation.sql",
     "supabase/functions/settle-race-result/index.ts",
     "supabase/functions/settle-race-result/deno.json",
 ]
@@ -312,6 +313,29 @@ for fragment in [
 ]:
     if fragment not in race_hardening_sql:
         raise SystemExit("Missing strict race result validation statement: " + fragment)
+
+# Session creation is idempotent on a stable request UUID and protected by the service role.
+creation_sql = (ROOT / "Database/Migrations/0009_apex_idempotent_race_session_creation.sql").read_text(encoding="utf-8").lower()
+for fragment in [
+    "create table if not exists apex_private.apex_race_session_requests",
+    "enable row level security",
+    "pg_advisory_xact_lock",
+    "hashtextextended",
+    "apex_server_create_race_session",
+    "race creation request key was reused with different parameters",
+    "from public, anon, authenticated",
+    "to service_role",
+]:
+    if fragment not in creation_sql:
+        raise SystemExit("Missing idempotent race-session creation safety statement: " + fragment)
+
+control_for_create = (ROOT / "supabase/functions/race-session-control/index.ts").read_text(encoding="utf-8")
+if '"request_key"' not in control_for_create or '"apex_server_create_race_session"' not in control_for_create:
+    raise SystemExit("Race control create operation must call the idempotent create-session RPC")
+
+race_client_for_create = (ROOT / "Server/RaceServer/RaceControlClient.cs").read_text(encoding="utf-8")
+if "Guid requestKey" not in race_client_for_create or 'JsonPropertyName("request_key")' not in race_client_for_create:
+    raise SystemExit("Race-server create API must send a stable idempotency request key")
 
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github", ROOT / "Server", ROOT / "supabase"):
