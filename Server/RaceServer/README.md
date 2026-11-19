@@ -2,6 +2,25 @@
 
 This standalone .NET 8 helper talks to the deployed Supabase `race-session-control` Edge Function. It is server-only and must not be included in the Unity player build.
 
+## Windows host configuration
+
+On a dedicated Windows VPS, open PowerShell with **Run as administrator** and run:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\Configure-RaceServerEnvironment.ps1
+```
+
+The script prompts for the same `APEX_RACE_SERVER_TOKEN` saved in GTWORLD Supabase. The prompt is hidden; the value is not printed or written to a file. It stores the URL and token in Windows Machine environment settings and verifies only that both values exist. Use the new PowerShell window (or restart the host before a Windows service is launched) so the process inherits the new values.
+
+Configured values:
+- `APEX_RACE_CONTROL_URL=https://hzawgrvonsqyqjyzzreg.supabase.co/functions/v1/race-session-control`
+- `APEX_RACE_SERVER_TOKEN` — your Supabase token, kept private.
+
+Do not paste the token into chat, commit it, include it in Unity/Android/iOS or place it in log output. Rotate it in both environments if exposed.
+
+**Current deployment boundary:** the repository contains the server-side .NET library and lifecycle coordinator, but not yet a runnable Windows Worker/Service host or a complete vehicle simulation loop. Do not install a Windows service or claim the race server is online until that executable host and its runtime integration have been implemented and tested.
+
 ## Required environment variables
 Set these only on the dedicated race-server host:
 - `APEX_RACE_CONTROL_URL=https://hzawgrvonsqyqjyzzreg.supabase.co/functions/v1/race-session-control`
