@@ -211,7 +211,8 @@ namespace ApexGTWorld.RaceServer
                         entrant.NextCheckpointIndex,
                         _checkpoints.Length,
                         entrant.FinishTimeMs,
-                        0);
+                        0,
+                        entrant.TerminalReasonCode);
 
                     var reward = serverRewardCalculator(standing);
                     if (reward is < 0 or > MaximumRewardCredits)
@@ -249,6 +250,7 @@ namespace ApexGTWorld.RaceServer
                 var entrant = GetRacingEntrant(userId);
                 ValidateServerTimestamp(entrant, serverEventTime);
                 entrant.LastEventAt = serverEventTime;
+                entrant.TerminalReasonCode = reasonCode;
                 entrant.Status = terminalStatus;
             }
         }
@@ -281,6 +283,7 @@ namespace ApexGTWorld.RaceServer
             public int NextCheckpointIndex { get; set; }
             public DateTimeOffset LastEventAt { get; set; }
             public long? FinishTimeMs { get; set; }
+            public string? TerminalReasonCode { get; set; }
 
             public Entrant(Guid userId) => UserId = userId;
         }
@@ -293,5 +296,6 @@ namespace ApexGTWorld.RaceServer
         int CompletedCheckpoints,
         int TotalCheckpoints,
         long? FinishTimeMs,
-        int Score);
+        int Score,
+        string? TerminalReasonCode);
 }
