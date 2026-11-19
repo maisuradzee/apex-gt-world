@@ -4,15 +4,17 @@ Repository: https://github.com/maisuradzee/apex-gt-world
 Default branch: `main`  
 Connected write account: `maisuradzee`
 
-The ChatGPT Codex Connector GitHub App is installed for the `maisuradzee` account with selected-repository access that includes `apex-gt-world`. Repository metadata reports admin and push permissions, and a Git Data blob write test succeeded.
+The ChatGPT Codex Connector is installed on the `maisuradzee` account with selected-repository access including `apex-gt-world`. Repository metadata confirms admin and push permission. Git Data blob write and branch update operations were verified.
 
-The initial source package is stored as `APEX_GT_WORLD_Source.tar.xz`. The workflow `.github/workflows/unpack-source.yml` expands the package into the root repository and pushes a second commit. It requires GitHub Actions to be enabled and the repository Actions setting to allow the workflow's `contents: write` permission. If automatic extraction is blocked, download the archive and extract it into a local clone without replacing the `.git` directory.
+## Source upload
+The initial Unity source package was committed and expanded into the repository root. GitHub Actions assembled the four-part compressed archive, extracted the files, ran `Tests/validate_source.py`, and committed the expanded tree successfully.
 
-## Local workflow
+## CI
+- `.github/workflows/expand-chunked-source.yml` is the bootstrap archive-expansion workflow.
+- `.github/workflows/validate-source.yml` validates required source structure, package JSON, and the SQL/RLS baseline on pushes and pull requests.
+
+## Local checks
 ```bash
-git clone https://github.com/maisuradzee/apex-gt-world.git
-cd apex-gt-world
-tar -xJf APEX_GT_WORLD_Source.tar.xz
 python3 Tests/validate_source.py
 ```
 

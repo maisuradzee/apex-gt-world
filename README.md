@@ -1,35 +1,45 @@
-# APEX GT WORLD — Unity Source Starter
+# APEX GT WORLD
 
-Mobile-first persistent open-world motorsport + roleplay project.
+Android-first, mobile-optimized open-world motorsport and roleplay game foundation.
 
-## Project status
-This repository contains the initial APEX GT WORLD Unity source package. It includes C# vehicle and motorcycle prototypes, touch controls, Editor scene generators, Android build tooling, architecture documentation, static validation tests, and a first Supabase schema migration. It is a **starter vertical slice, not a finished or currently playable commercial game**. Unity compilation, Play-mode testing, Android APK creation, and live multiplayer have not yet been validated.
+## Current project state
+The initial Unity source tree is committed to `main`. The bootstrap GitHub Actions run successfully assembled the source package, extracted it, and ran `Tests/validate_source.py`. This is a **starter source foundation**, not a completed playable game.
 
-## Product decisions
-- Android first; iOS-compatible architecture.
-- Unity 6 LTS + URP.
-- Connected regions: Metro City, Coastal City, Mountain District, and Motorsport Park.
+## Product and technical baseline
+- Android first; keep architecture iOS-compatible.
+- Unity 6 LTS + Universal Render Pipeline (URP).
+- Connected regions: Metro City, Coastal City, Mountain District, Motorsport Park.
 - First-person and third-person cameras.
 - Persistent shared world with separate authoritative race sessions.
-- Mobile-optimized graphics; 30 FPS baseline / 60 FPS capable-device goals remain unverified targets.
-- Original code, maps, UI, missions, and original/licensed vehicle assets only.
+- Separate car and motorcycle control/physics prototypes.
+- Mobile optimization targets: 30 FPS baseline and 60 FPS on capable devices; these targets are not yet performance-verified.
+- Use original or properly licensed code, maps, art, vehicles, music, and other content.
+
+## Repository structure
+- `Assets/Scripts/VehiclePhysics` — car controller/input prototype.
+- `Assets/Scripts/MotorcyclePhysics` — motorcycle balance/lean prototype.
+- `Assets/Scripts/Camera` — camera mode and follow logic.
+- `Assets/Scripts/World` — region metadata and scene-loading foundation.
+- `Assets/Scripts/Backend` — Supabase client/configuration and diagnostics foundation.
+- `Assets/Editor` — starter scene generators and Android build menu.
+- `Database/Migrations` — initial Supabase schema migration.
+- `Documentation` and `Tests` — architecture, setup, test plan and source validator.
 
 ## Unity setup
-1. Install Unity Hub and a supported Unity 6 LTS Editor.
-2. Create a **3D (URP)** project named `APEX_GT_WORLD`.
-3. Add Android Build Support, Android SDK & NDK Tools, and OpenJDK.
-4. Copy this repository's `Assets/` folder into the project; retain Unity-generated URP and `ProjectSettings` files.
-5. Merge `com.unity.ugui` from `Packages/manifest.json` if needed; do not replace URP template dependencies.
-6. Reopen Unity, wait for compilation, then run `APEX GT WORLD > Setup` to generate a car or motorcycle test scene.
-7. Test the scenes before using `APEX GT WORLD > Build > Build Android APK`.
+1. Install Unity Hub and a Unity 6 LTS Editor with the 3D URP template.
+2. Add Android Build Support, Android SDK & NDK Tools, and OpenJDK.
+3. Open/create the project using this source tree; retain Unity-generated URP settings and merge required package dependencies.
+4. Let Unity import and compile, then use `APEX GT WORLD > Setup` to generate the car or motorcycle test scene.
+5. Run the test plan before using `APEX GT WORLD > Build > Build Android APK`.
 
 ## Supabase
-`Database/Migrations/0001_apex_core.sql` targets a **new dedicated APEX GT WORLD project only**. The project `hzawgrvonsqyqjyzzreg` is reachable and active, but the migration has not yet been applied. Do not run it on Qulup or ASIX. RLS is enabled in the migration; wallet and authoritative economy writes are server-only.
+Target project: `hzawgrvonsqyqjyzzreg` (`GTWORLD`, `eu-west-1`). It was verified active and healthy, with no public tables or migrations at the time of inspection. `Database/Migrations/0001_apex_core.sql` is staged in source but has **not** been applied.
 
-The Unity client uses a public publishable key. A publishable key is not a substitute for user authentication or authorization. Never put a Supabase secret/service-role key, database password, signing key, or server secret in Unity assets or Git.
+Apply it only to the dedicated APEX project, never to Qulup or ASIX. The Unity client may use the publishable key, but must never contain a service-role/secret key, database password, signing key, or server secret. Authentication and RLS ownership checks are still required.
 
-## GitHub
-The source package is committed to `main`. The ChatGPT Codex Connector installation is active on the `maisuradzee` account and the Git Data write test succeeded. The `unpack-source.yml` workflow expands the source archive into the repository and commits the extracted project files when GitHub Actions is enabled and permitted to push to `main`.
+## GitHub and validation
+Repository: https://github.com/maisuradzee/apex-gt-world
 
-## Validation
-The included source validation checks required files, package JSON, and SQL/RLS structure. It passed in the preparation environment. These checks do not replace Unity Editor compilation, Play-mode physics tests, Android device profiling, or server-side integration tests. See `Documentation/STATUS.md` and `Documentation/ROADMAP.md`.
+The source tree is committed on `main`. The first extraction workflow successfully assembled the compressed package and passed the static source validator. `validate-source.yml` runs source checks on future pushes and pull requests.
+
+Static checks do not replace Unity Editor compilation, Play Mode physics/input tests, Android device profiling, server-side multiplayer testing, or a production security review. None of those full runtime validations is claimed yet.

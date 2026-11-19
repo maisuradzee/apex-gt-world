@@ -5,9 +5,10 @@
 - [x] Unity starter C# source and Editor scene generator.
 - [x] Android build menu script.
 - [x] Supabase initial schema draft with RLS and explicit client grants.
-- [x] GitHub Codex Connector write access verified; source archive prepared for the `main` branch and extraction workflow configured.
-- [ ] Create Unity 6 LTS URP project and pin exact Editor/package versions.
-- [ ] Provision a dedicated APEX Supabase project and apply the migration in development.
+- [x] GitHub write access verified; complete source tree committed to `main`.
+- [x] GitHub Actions source extraction and static validation passed.
+- [ ] Create/open the Unity 6 LTS URP project and pin exact Editor/package versions.
+- [ ] Apply the initial Supabase migration to the dedicated development project after review.
 
 ## Gate 1 — Offline vehicle vertical slice
 - [ ] Generate starter scenes in Unity Editor.
@@ -23,7 +24,7 @@
 - [ ] Add garage and vehicle selection.
 
 ## Gate 3 — Backend foundation
-- [ ] Provision a dedicated Supabase project; apply migrations in development first.
+- [ ] Apply migrations in the dedicated development Supabase project.
 - [ ] Verify Auth, profile provisioning and secure session refresh.
 - [ ] Implement trusted server-side wallet and ownership APIs.
 - [ ] Complete RLS, grants and security-advisor review.
