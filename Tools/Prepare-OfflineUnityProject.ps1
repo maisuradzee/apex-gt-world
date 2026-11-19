@@ -41,10 +41,21 @@ if ($targetVersionText -notmatch [regex]::Escape($expectedEditor)) {
 
 Write-Host "Merging APEX GT WORLD Assets into: $targetRoot" -ForegroundColor Cyan
 
-# Merge content without deleting the URP template's Assets/Settings folder.
-Get-ChildItem -LiteralPath $sourceAssets -Force | ForEach-Object {
-    $destination = Join-Path $targetAssets $_.Name
-    Copy-Item -LiteralPath $_.FullName -Destination $destination -Recurse -Force
+# Merge source content without deleting files created by the URP template.
+& robocopy $sourceAssets $targetAssets /E /COPY:DAT /DCOPY:DAT /R:2 /W:1
+$copyExitCode = $LASTEXITCODE
+if ($copyExitCode -ge 8) {
+    throw "Asset merge failed (robocopy exit code $copyExitCode)."
+}
+
+$sourceDocs = Join-Path $sourceRoot "Documentation"
+$targetDocs = Join-Path $targetRoot "Documentation"
+if (Test-Path -LiteralPath $sourceDocs) {
+    New-Item -ItemType Directory -Path $targetDocs -Force | Out-Null
+    & robocopy $sourceDocs $targetDocs /E /COPY:DAT /DCOPY:DAT /R:2 /W:1
+    if ($LASTEXITCODE -ge 8) {
+        throw "Documentation copy failed (robocopy exit code $LASTEXITCODE)."
+    }
 }
 
 $manifest = Get-Content -LiteralPath $targetManifest -Raw | ConvertFrom-Json
