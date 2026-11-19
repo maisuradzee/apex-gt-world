@@ -10,6 +10,9 @@ REQUIRED = [
     "Assets/Scripts/VehiclePhysics/VehicleController.cs",
     "Assets/Scripts/MotorcyclePhysics/MotorcyclePrototypeController.cs",
     "Assets/Editor/StarterSceneGenerator.cs",
+    "Assets/Scripts/Offline/OfflinePlayerProfile.cs",
+    "Assets/Scripts/Offline/OfflineSaveStore.cs",
+    "Assets/Scripts/Offline/OfflineGameManager.cs",
     "Database/Migrations/0001_apex_core.sql",
     "Database/Migrations/0002_apex_security_and_region_indexes.sql",
     "Database/Migrations/0003_apex_auth_user_bootstrap.sql",
@@ -145,6 +148,26 @@ if scene_source.count("RegisterSceneInBuildSettings(") < 3:
     raise SystemExit("Both starter scene generators must register scenes through the preserving helper")
 if "EditorBuildSettings.scenes = new[]" in scene_source:
     raise SystemExit("Scene generation must not replace the existing Build Settings scene list")
+
+# Offline-first gameplay must not require Supabase Auth or network access to boot.
+offline_profile = (ROOT / "Assets/Scripts/Offline/OfflinePlayerProfile.cs").read_text(encoding="utf-8")
+for fragment in ["schemaVersion", "credits", "careerXp", "selectedVehicleId", "ownedVehicleIds", "unlockedRegionIds", "completedEventIds"]:
+    if fragment not in offline_profile:
+        raise SystemExit("Offline player profile is missing: " + fragment)
+
+offline_store = (ROOT / "Assets/Scripts/Offline/OfflineSaveStore.cs").read_text(encoding="utf-8")
+for fragment in ["Application.persistentDataPath", "TryLoad", "TrySave", "BackupFileName", "FileStream", "schemaVersion != 1"]:
+    if fragment not in offline_store:
+        raise SystemExit("Offline save store is missing: " + fragment)
+
+offline_manager = (ROOT / "Assets/Scripts/Offline/OfflineGameManager.cs").read_text(encoding="utf-8")
+for fragment in ["CompleteEvent", "TryPurchaseVehicle", "TrySelectVehicle", "UnlockRegion", "OnApplicationPause", "SaveNow", "completedEventIds"]:
+    if fragment not in offline_manager:
+        raise SystemExit("Offline progression manager is missing: " + fragment)
+if "UnityWebRequest" in offline_manager or "Supabase" in offline_manager:
+    raise SystemExit("Offline gameplay manager must not depend on Supabase or network requests")
+if "AddOfflineGameManager();" not in scene_source or "AddSupabaseDebugConsole();" in scene_source:
+    raise SystemExit("Generated starter scenes must launch with local offline profile support, not the Supabase debug console")
 
 # Prevent cross-account debug flows from retaining an unrelated in-memory session.
 if "Sign out before switching accounts." not in client_source:
