@@ -53,7 +53,7 @@ if manifest.get("dependencies", {}).get("com.unity.ugui") != "2.0.0":
     raise SystemExit("uGUI 2.0.0 must be pinned in Packages/manifest.json")
 
 project_setup_script = (ROOT / "Tools/Prepare-OfflineUnityProject.ps1").read_text(encoding="utf-8")
-for fragment in ["robocopy", "Assets/Settings", "6000.3.28f1", "com.unity.render-pipelines.universal", "com.unity.ugui"]:
+for fragment in ["robocopy", "targetSettings", "6000.3.28f1", "com.unity.render-pipelines.universal", "com.unity.ugui"]:
     if fragment not in project_setup_script:
         raise SystemExit("Windows Unity project setup script is missing: " + fragment)
 if not isinstance(manifest.get("dependencies"), dict):
