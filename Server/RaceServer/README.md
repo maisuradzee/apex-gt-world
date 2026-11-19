@@ -19,7 +19,7 @@ Configured values:
 
 Do not paste the token into chat, commit it, include it in Unity/Android/iOS or place it in log output. Rotate it in both environments if exposed.
 
-**Current deployment boundary:** the repository contains the server-side .NET library and lifecycle coordinator, but not yet a runnable Windows Worker/Service host or a complete vehicle simulation loop. Do not install a Windows service or claim the race server is online until that executable host and its runtime integration have been implemented and tested.
+**Current deployment boundary:** a runnable .NET 8 Windows Worker Service host now exists and CI publishes a self-contained Windows x64 artifact. It validates the protected Supabase control configuration and stays running as a Windows service. It is a control-plane host only: vehicle physics, live player networking, authoritative movement validation and a complete race simulation loop are not yet attached. Installing this service does not yet make the game playable.
 
 ## Required environment variables
 Set these only on the dedicated race-server host:
@@ -51,12 +51,16 @@ The create RPC and finalize RPC are idempotent. Create uses a private request-ke
 
 The host must call checkpoint methods only after authoritative server-side position/trigger validation. The runtime does **not** yet simulate vehicle physics, validate movement/telemetry, replicate players, manage reconnects or prove anti-cheat integrity. Reward amounts remain the responsibility of a server-owned reward schedule; no economy rates are hard-coded here.
 
-## Build
-```bash
-dotnet build Server/RaceServer/ApexGtWorld.RaceServer.csproj
+## Build and Windows deployment
+Build the control library and service host:
+```powershell
+dotnet build Server/RaceServer/ApexGtWorld.RaceServer.csproj --configuration Release
+dotnet build Server/RaceServer.Host/ApexGtWorld.RaceServer.Host.csproj --configuration Release
 ```
 
-The GitHub Actions workflow builds the .NET server library and runs both HTTP contract tests (with a fake handler) and race-session domain tests. The current runtime is a lifecycle/checkpoint domain component only; it does not implement simulation ticks, vehicle physics, network replication, reconnect handling, telemetry validation or anti-cheat.
+Publish locally on Windows with `Windows/Publish-RaceServer.ps1`, then use `Windows/Install-RaceServerService.ps1` as Administrator. GitHub Actions also publishes the `apex-gt-world-race-server-win-x64` self-contained artifact for Windows x64; extract it to a folder and run the included installer. Set the environment variables first using `Windows/Configure-RaceServerEnvironment.ps1`.
+
+The GitHub Actions workflow builds the .NET server library and Windows Service host, publishes the Windows x64 service artifact, and runs both HTTP contract tests (with a fake handler) and race-session domain/coordinator tests. The current runtime is a lifecycle/checkpoint domain component only; it does not implement simulation ticks, vehicle physics, network replication, reconnect handling, telemetry validation or anti-cheat.
 
 
 ## Tests
