@@ -156,12 +156,12 @@ for fragment in ["schemaVersion", "credits", "careerXp", "selectedVehicleId", "o
         raise SystemExit("Offline player profile is missing: " + fragment)
 
 offline_store = (ROOT / "Assets/Scripts/Offline/OfflineSaveStore.cs").read_text(encoding="utf-8")
-for fragment in ["Application.persistentDataPath", "TryLoad", "TrySave", "BackupFileName", "FileStream", "schemaVersion != 1"]:
+for fragment in ["Application.persistentDataPath", "TryLoad", "TrySave", "BackupFileName", "FileStream", "schemaVersion != 1", 'primary + ".corrupt"']:
     if fragment not in offline_store:
         raise SystemExit("Offline save store is missing: " + fragment)
 
 offline_manager = (ROOT / "Assets/Scripts/Offline/OfflineGameManager.cs").read_text(encoding="utf-8")
-for fragment in ["CompleteEvent", "TryPurchaseVehicle", "TrySelectVehicle", "UnlockRegion", "OnApplicationPause", "SaveNow", "completedEventIds"]:
+for fragment in ["CompleteEvent", "TryPurchaseVehicle", "TrySelectVehicle", "UnlockRegion", "OnApplicationPause", "SaveNow", "completedEventIds", "previousCredits", "previousEvents", "previousSelection", "previousRegions"]:
     if fragment not in offline_manager:
         raise SystemExit("Offline progression manager is missing: " + fragment)
 if "UnityWebRequest" in offline_manager or "Supabase" in offline_manager:
