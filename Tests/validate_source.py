@@ -16,6 +16,7 @@ REQUIRED = [
     "Database/Migrations/0004_apex_service_role_privileges.sql",
     "Database/Migrations/0005_apex_wallet_transactions.sql",
     "Database/Migrations/0006_apex_race_reward_settlement.sql",
+    "Database/Migrations/0007_apex_authoritative_race_lifecycle.sql",
     "supabase/functions/settle-race-result/index.ts",
     "supabase/functions/settle-race-result/deno.json",
 ]
@@ -242,6 +243,27 @@ if "race_result_id" not in claim_block or "body.amount" in claim_block or "p_amo
     raise SystemExit("Race reward client may send only the result ID, never a payout amount")
 if "client.ClaimRaceReward" not in (ROOT / "Assets/Scripts/Backend/SupabaseDebugPanel.cs").read_text(encoding="utf-8"):
     raise SystemExit("Supabase debug panel must expose the race reward test action")
+
+# Race lifecycle RPCs are authoritative, atomic, idempotent and server-only.
+race_lifecycle_sql = (ROOT / "Database/Migrations/0007_apex_authoritative_race_lifecycle.sql").read_text(encoding="utf-8").lower()
+required_lifecycle = [
+    "create or replace function public.apex_server_start_race_session",
+    "for update",
+    "set status = 'running'",
+    "create or replace function public.apex_server_finalize_race_session",
+    "jsonb_typeof(p_results) <> 'array'",
+    "v_session.status = 'finished'",
+    "v_existing.reward_credits <> v_reward_credits",
+    "validated, reward_credits",
+    "set status = 'finished'",
+    "from public, anon, authenticated",
+    "to service_role",
+]
+for fragment in required_lifecycle:
+    if fragment not in race_lifecycle_sql:
+        raise SystemExit("Missing authoritative race lifecycle safety statement: " + fragment)
+if "grant execute on function public.apex_server_finalize_race_session(uuid, jsonb) to authenticated" in race_lifecycle_sql:
+    raise SystemExit("Race finalization must never be executable by client roles")
 
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
