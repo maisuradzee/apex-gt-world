@@ -62,6 +62,25 @@ namespace ApexGTWorld.Backend
     }
 
     [Serializable]
+    public sealed class ApexWallet
+    {
+        public string user_id;
+        public long credits;
+        public long premium_tokens;
+        public string updated_at;
+    }
+
+    [Serializable]
+    public sealed class ApexPlayerProgress
+    {
+        public string user_id;
+        public int career_level;
+        public long career_xp;
+        public string[] unlocked_content;
+        public string updated_at;
+    }
+
+    [Serializable]
     public sealed class ApexRegion
     {
         public string region_id;
@@ -71,6 +90,12 @@ namespace ApexGTWorld.Backend
 
     [Serializable]
     internal sealed class ApexProfileArray { public ApexProfile[] items; }
+
+    [Serializable]
+    internal sealed class ApexWalletArray { public ApexWallet[] items; }
+
+    [Serializable]
+    internal sealed class ApexPlayerProgressArray { public ApexPlayerProgress[] items; }
 
     [Serializable]
     internal sealed class ApexRegionArray { public ApexRegion[] items; }

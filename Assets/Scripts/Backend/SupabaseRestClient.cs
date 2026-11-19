@@ -165,6 +165,60 @@ namespace ApexGTWorld.Backend
             }, "return=representation");
         }
 
+        public IEnumerator FetchMyWallet(Action<ApexWallet, string> completed)
+        {
+            if (!IsSignedIn || CurrentSession.user == null)
+            {
+                completed?.Invoke(null, "Sign in before requesting wallet data.");
+                yield break;
+            }
+
+            string userId = UnityWebRequest.EscapeURL(CurrentSession.user.id);
+            string path = "/rest/v1/apex_wallets?select=user_id,credits,premium_tokens,updated_at&user_id=eq." + userId;
+            yield return Send(path, UnityWebRequest.kHttpVerbGET, null, true, (json, error) =>
+            {
+                if (!string.IsNullOrEmpty(error)) { completed?.Invoke(null, error); return; }
+                try
+                {
+                    var result = JsonUtility.FromJson<ApexWalletArray>("{\"items\":" + json + "}");
+                    if (result == null || result.items == null || result.items.Length == 0)
+                    {
+                        completed?.Invoke(null, "Wallet row was not found for the signed-in user.");
+                        return;
+                    }
+                    completed?.Invoke(result.items[0], null);
+                }
+                catch (Exception ex) { completed?.Invoke(null, "Wallet parsing failed: " + ex.Message); }
+            });
+        }
+
+        public IEnumerator FetchMyProgress(Action<ApexPlayerProgress, string> completed)
+        {
+            if (!IsSignedIn || CurrentSession.user == null)
+            {
+                completed?.Invoke(null, "Sign in before requesting career progress.");
+                yield break;
+            }
+
+            string userId = UnityWebRequest.EscapeURL(CurrentSession.user.id);
+            string path = "/rest/v1/apex_player_progress?select=user_id,career_level,career_xp,unlocked_content,updated_at&user_id=eq." + userId;
+            yield return Send(path, UnityWebRequest.kHttpVerbGET, null, true, (json, error) =>
+            {
+                if (!string.IsNullOrEmpty(error)) { completed?.Invoke(null, error); return; }
+                try
+                {
+                    var result = JsonUtility.FromJson<ApexPlayerProgressArray>("{\"items\":" + json + "}");
+                    if (result == null || result.items == null || result.items.Length == 0)
+                    {
+                        completed?.Invoke(null, "Career progress row was not found for the signed-in user.");
+                        return;
+                    }
+                    completed?.Invoke(result.items[0], null);
+                }
+                catch (Exception ex) { completed?.Invoke(null, "Career progress parsing failed: " + ex.Message); }
+            });
+        }
+
         public IEnumerator FetchRegions(Action<ApexRegion[], string> completed)
         {
             if (!IsSignedIn) { completed?.Invoke(null, "Sign in before requesting world regions."); yield break; }

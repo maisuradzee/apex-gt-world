@@ -170,6 +170,32 @@ for fragment in required_wallet:
 if "grant execute on function public.apex_server_apply_wallet_delta(uuid, text, bigint, text, text, jsonb) to authenticated" in wallet_sql:
     raise SystemExit("Wallet transaction RPC must never be executable by authenticated clients")
 
+# Wallet and career read requests are owner-scoped GET-only operations.
+wallet_start = client_source.find("public IEnumerator FetchMyWallet")
+wallet_end = client_source.find("public IEnumerator FetchMyProgress", wallet_start)
+if wallet_start < 0 or wallet_end < 0:
+    raise SystemExit("FetchMyWallet method is missing")
+wallet_block = client_source[wallet_start:wallet_end]
+if '"/rest/v1/apex_wallets?select=user_id,credits,premium_tokens,updated_at&user_id=eq."' not in wallet_block:
+    raise SystemExit("Wallet read must select only safe balance fields and filter by signed-in user_id")
+if "UnityWebRequest.kHttpVerbGET" not in wallet_block or '"POST"' in wallet_block or '"PATCH"' in wallet_block:
+    raise SystemExit("Wallet client operation must remain read-only")
+
+progress_start = wallet_end
+progress_end = client_source.find("public IEnumerator FetchRegions", progress_start)
+if progress_end < 0:
+    raise SystemExit("FetchRegions method not found after player progress reader")
+progress_block = client_source[progress_start:progress_end]
+if '"/rest/v1/apex_player_progress?select=user_id,career_level,career_xp,unlocked_content,updated_at&user_id=eq."' not in progress_block:
+    raise SystemExit("Career progress read must be owner-filtered")
+if "UnityWebRequest.kHttpVerbGET" not in progress_block or '"POST"' in progress_block or '"PATCH"' in progress_block:
+    raise SystemExit("Career progress client operation must remain read-only")
+
+if "public sealed class ApexWallet" not in dto_source or "public long credits;" not in dto_source or "public long premium_tokens;" not in dto_source:
+    raise SystemExit("ApexWallet DTO is incomplete")
+if "public sealed class ApexPlayerProgress" not in dto_source or "public int career_level;" not in dto_source or "public long career_xp;" not in dto_source or "public string[] unlocked_content;" not in dto_source:
+    raise SystemExit("ApexPlayerProgress DTO is incomplete")
+
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
     for path in base.rglob("*"):

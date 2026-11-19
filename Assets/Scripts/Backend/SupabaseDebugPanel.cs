@@ -15,6 +15,8 @@ namespace ApexGTWorld.UI
         private string password = string.Empty;
         private string displayName = "Driver";
         private string status = "Supabase: not signed in";
+        private string walletStatus = "Wallet: not loaded";
+        private string progressStatus = "Career: not loaded";
         private bool visible = true;
 
         private void Awake()
@@ -31,7 +33,7 @@ namespace ApexGTWorld.UI
             }
 
             float width = Mathf.Min(Screen.width - 24f, 460f);
-            float height = Mathf.Min(Screen.height - 24f, 330f);
+            float height = Mathf.Min(Screen.height - 24f, 440f);
             GUI.Box(new Rect(12, 12, width, height), "APEX GT WORLD — SUPABASE TEST");
             GUILayout.BeginArea(new Rect(24, 42, width - 24, height - 54));
             GUILayout.Label("Email");
@@ -58,6 +60,18 @@ namespace ApexGTWorld.UI
                 StartCoroutine(client.FetchRegions((regions, error) => status = error ?? ("Regions loaded: " + (regions == null ? 0 : regions.Length))));
             if (GUILayout.Button("SIGN OUT", GUILayout.Height(30)))
                 StartCoroutine(client.SignOut((ok, error) => status = error ?? "Signed out"));
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("LOAD WALLET", GUILayout.Height(34)))
+                StartCoroutine(client.FetchMyWallet((wallet, error) =>
+                    walletStatus = error ?? (wallet == null ? "Wallet not found" :
+                        "Credits: " + wallet.credits + " | Premium: " + wallet.premium_tokens)));
+            if (GUILayout.Button("LOAD CAREER", GUILayout.Height(34)))
+                StartCoroutine(client.FetchMyProgress((progress, error) =>
+                    progressStatus = error ?? (progress == null ? "Career not found" :
+                        "Level: " + progress.career_level + " | XP: " + progress.career_xp)));
+            GUILayout.EndHorizontal();
+            GUILayout.Label(walletStatus);
+            GUILayout.Label(progressStatus);
             GUILayout.Label("Status: " + status);
             GUILayout.Label("This is a development console, not the final game UI.");
             if (GUILayout.Button("HIDE", GUILayout.Height(26))) visible = false;
