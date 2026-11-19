@@ -371,6 +371,8 @@ for fragment in [
 race_runtime = (ROOT / "Server/RaceServer/RaceSessionRuntime.cs").read_text(encoding="utf-8")
 for fragment in [
     "MaximumEntrants = 64",
+    "LapCount",
+    "_totalCheckpoints",
     "RecordCheckpoint",
     "ValidateServerTimestamp",
     "MarkDidNotFinish",
@@ -395,6 +397,8 @@ for fragment in [
     "zero-duration finish rejected without partial progress mutation",
     "65th entrant rejected",
     "cached immutable collection",
+    "next lap must begin at its first checkpoint",
+    "race standing counts checkpoints across every configured lap",
 ]:
     if fragment not in race_runtime_tests:
         raise SystemExit("Missing race-runtime validation test: " + fragment)
