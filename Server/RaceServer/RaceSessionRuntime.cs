@@ -33,6 +33,7 @@ namespace ApexGTWorld.RaceServer
 
         private readonly object _gate = new();
         private readonly string[] _checkpoints;
+        private readonly int _totalCheckpoints;
         private readonly Dictionary<Guid, Entrant> _entrants = new();
         private DateTimeOffset? _startedAt;
         private RaceRuntimeStatus _status = RaceRuntimeStatus.Created;
@@ -41,6 +42,7 @@ namespace ApexGTWorld.RaceServer
         public Guid SessionId { get; }
         public string RegionId { get; }
         public string Discipline { get; }
+        public int LapCount { get; }
 
         public RaceRuntimeStatus Status
         {
@@ -56,7 +58,8 @@ namespace ApexGTWorld.RaceServer
             Guid sessionId,
             string regionId,
             string discipline,
-            IReadOnlyList<string> orderedCheckpointIds)
+            IReadOnlyList<string> orderedCheckpointIds,
+            int lapCount = 1)
         {
             if (sessionId == Guid.Empty)
                 throw new ArgumentException("Session ID is required.", nameof(sessionId));
@@ -65,7 +68,9 @@ namespace ApexGTWorld.RaceServer
             if (discipline is not ("circuit" or "time_attack" or "drift" or "endurance" or "motorcycle"))
                 throw new ArgumentOutOfRangeException(nameof(discipline), "Unsupported race discipline.");
             if (orderedCheckpointIds is null || orderedCheckpointIds.Count is < 1 or > 512)
-                throw new ArgumentOutOfRangeException(nameof(orderedCheckpointIds), "A course must contain 1–512 ordered checkpoints.");
+                throw new ArgumentOutOfRangeException(nameof(orderedCheckpointIds), "A course must contain 1–512 ordered checkpoints per lap.");
+            if (lapCount is < 1 or > 100)
+                throw new ArgumentOutOfRangeException(nameof(lapCount), "Lap count must be between 1 and 100.");
 
             var checkpoints = orderedCheckpointIds.ToArray();
             if (checkpoints.Any(string.IsNullOrWhiteSpace))
@@ -76,7 +81,9 @@ namespace ApexGTWorld.RaceServer
             SessionId = sessionId;
             RegionId = regionId.Trim();
             Discipline = discipline;
+            LapCount = lapCount;
             _checkpoints = checkpoints;
+            _totalCheckpoints = checked(checkpoints.Length * lapCount);
         }
 
         public void AddEntrant(Guid userId)
@@ -133,14 +140,14 @@ namespace ApexGTWorld.RaceServer
                 var entrant = GetRacingEntrant(userId);
                 ValidateServerTimestamp(entrant, serverEventTime);
 
-                if (entrant.NextCheckpointIndex >= _checkpoints.Length)
+                if (entrant.NextCheckpointIndex >= _totalCheckpoints)
                     throw new InvalidOperationException("Player has already completed the course.");
 
-                var expected = _checkpoints[entrant.NextCheckpointIndex];
+                var expected = _checkpoints[entrant.NextCheckpointIndex % _checkpoints.Length];
                 if (!string.Equals(expected, checkpointId, StringComparison.Ordinal))
                     throw new InvalidOperationException("Checkpoint is out of order or does not belong to this course.");
 
-                var completesCourse = entrant.NextCheckpointIndex == _checkpoints.Length - 1;
+                var completesCourse = entrant.NextCheckpointIndex == _totalCheckpoints - 1;
                 long? finishTimeMs = null;
                 if (completesCourse)
                 {
@@ -209,7 +216,7 @@ namespace ApexGTWorld.RaceServer
                         i + 1,
                         entrant.Status,
                         entrant.NextCheckpointIndex,
-                        _checkpoints.Length,
+                        _totalCheckpoints,
                         entrant.FinishTimeMs,
                         0,
                         entrant.TerminalReasonCode);
