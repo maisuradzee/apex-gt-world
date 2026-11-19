@@ -68,13 +68,24 @@ namespace ApexGTWorld.Offline
             var completed = new HashSet<string>(profile.completedEventIds ?? new string[0], StringComparer.Ordinal);
             if (!completed.Add(eventId.Trim())) return false;
 
+            long previousCredits = profile.credits;
+            long previousXp = profile.careerXp;
+            float previousDistance = profile.totalDistanceMeters;
+            string[] previousEvents = profile.completedEventIds;
+
             profile.completedEventIds = ToArray(completed);
             profile.credits = SafeAdd(profile.credits, rewardCredits);
             profile.careerXp = SafeAdd(profile.careerXp, earnedXp);
-            profile.totalDistanceMeters = Mathf.Max(0f, profile.totalDistanceMeters + distanceMeters);
+            double totalDistance = (double)profile.totalDistanceMeters + distanceMeters;
+            profile.totalDistanceMeters = (float)Math.Min(float.MaxValue, totalDistance);
             profile.Normalize();
 
-            return SaveNow();
+            if (SaveNow()) return true;
+            profile.credits = previousCredits;
+            profile.careerXp = previousXp;
+            profile.totalDistanceMeters = previousDistance;
+            profile.completedEventIds = previousEvents;
+            return false;
         }
 
         public bool TryPurchaseVehicle(string vehicleId, long price)
@@ -84,18 +95,29 @@ namespace ApexGTWorld.Offline
                 return false;
             if (profile.credits < price) return false;
 
+            long previousCredits = profile.credits;
+            string[] previousOwned = profile.ownedVehicleIds;
+
             profile.credits -= price;
             var owned = new HashSet<string>(profile.ownedVehicleIds ?? new string[0], StringComparer.Ordinal);
             owned.Add(vehicleId.Trim());
             profile.ownedVehicleIds = ToArray(owned);
-            return SaveNow();
+            if (SaveNow()) return true;
+            profile.credits = previousCredits;
+            profile.ownedVehicleIds = previousOwned;
+            return false;
         }
 
         public bool TrySelectVehicle(string vehicleId)
         {
-            if (profile == null || !OwnsVehicle(vehicleId)) return false;
-            profile.selectedVehicleId = vehicleId.Trim();
-            return SaveNow();
+            if (profile == null || string.IsNullOrWhiteSpace(vehicleId)) return false;
+            vehicleId = vehicleId.Trim();
+            if (!OwnsVehicle(vehicleId)) return false;
+            string previousSelection = profile.selectedVehicleId;
+            profile.selectedVehicleId = vehicleId;
+            if (SaveNow()) return true;
+            profile.selectedVehicleId = previousSelection;
+            return false;
         }
 
         public bool UnlockRegion(string regionId)
@@ -103,8 +125,11 @@ namespace ApexGTWorld.Offline
             if (profile == null || string.IsNullOrWhiteSpace(regionId)) return false;
             var regions = new HashSet<string>(profile.unlockedRegionIds ?? new string[0], StringComparer.Ordinal);
             if (!regions.Add(regionId.Trim())) return false;
+            string[] previousRegions = profile.unlockedRegionIds;
             profile.unlockedRegionIds = ToArray(regions);
-            return SaveNow();
+            if (SaveNow()) return true;
+            profile.unlockedRegionIds = previousRegions;
+            return false;
         }
 
         public bool OwnsVehicle(string vehicleId)
