@@ -138,6 +138,15 @@ if scene_source.count("RegisterSceneInBuildSettings(") < 3:
 if "EditorBuildSettings.scenes = new[]" in scene_source:
     raise SystemExit("Scene generation must not replace the existing Build Settings scene list")
 
+# Prevent cross-account debug flows from retaining an unrelated in-memory session.
+if "Sign out before switching accounts." not in client_source:
+    raise SystemExit("Sign-in must reject account switching while a session is active")
+if "Sign out before creating a new account." not in client_source:
+    raise SystemExit("Sign-up must reject account creation while another session is active")
+refresh_block = client_source[client_source.find("public IEnumerator RefreshSession"):client_source.find("public IEnumerator SignOut")]
+if "invalid refreshed session" not in refresh_block:
+    raise SystemExit("RefreshSession must reject invalid Auth responses")
+
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
     for path in base.rglob("*"):

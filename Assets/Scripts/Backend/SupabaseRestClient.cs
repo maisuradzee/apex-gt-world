@@ -17,6 +17,12 @@ namespace ApexGTWorld.Backend
 
         public IEnumerator SignInWithPassword(string email, string password, Action<SupabaseAuthSession, string> completed)
         {
+            if (IsSignedIn)
+            {
+                completed?.Invoke(null, "Sign out before switching accounts.");
+                yield break;
+            }
+
             var body = JsonUtility.ToJson(new SupabaseAuthCredentials { email = email, password = password });
             yield return Send(
                 "/auth/v1/token?grant_type=password",
@@ -37,6 +43,12 @@ namespace ApexGTWorld.Backend
 
         public IEnumerator SignUpWithPassword(string email, string password, string displayName, Action<SupabaseAuthSession, string> completed)
         {
+            if (IsSignedIn)
+            {
+                completed?.Invoke(null, "Sign out before creating a new account.");
+                yield break;
+            }
+
             if (string.IsNullOrWhiteSpace(displayName) || displayName.Trim().Length < 3 || displayName.Trim().Length > 24)
             {
                 completed?.Invoke(null, "Display name must contain 3–24 characters.");
@@ -77,7 +89,13 @@ namespace ApexGTWorld.Backend
                 try
                 {
                     var refreshed = JsonUtility.FromJson<SupabaseAuthSession>(json);
-                    if (refreshed != null && refreshed.user == null && CurrentSession != null)
+                    if (refreshed == null || string.IsNullOrEmpty(refreshed.access_token))
+                    {
+                        CurrentSession = null;
+                        completed?.Invoke(null, "Supabase Auth returned an invalid refreshed session.");
+                        return;
+                    }
+                    if (refreshed.user == null && CurrentSession != null)
                         refreshed.user = CurrentSession.user;
                     CurrentSession = refreshed;
                     completed?.Invoke(CurrentSession, null);
