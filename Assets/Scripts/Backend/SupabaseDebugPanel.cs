@@ -17,6 +17,8 @@ namespace ApexGTWorld.UI
         private string status = "Supabase: not signed in";
         private string walletStatus = "Wallet: not loaded";
         private string progressStatus = "Career: not loaded";
+        private string raceResultId = string.Empty;
+        private string rewardStatus = "Race reward: not claimed";
         private bool visible = true;
 
         private void Awake()
@@ -33,7 +35,7 @@ namespace ApexGTWorld.UI
             }
 
             float width = Mathf.Min(Screen.width - 24f, 460f);
-            float height = Mathf.Min(Screen.height - 24f, 440f);
+            float height = Mathf.Min(Screen.height - 24f, 520f);
             GUI.Box(new Rect(12, 12, width, height), "APEX GT WORLD — SUPABASE TEST");
             GUILayout.BeginArea(new Rect(24, 42, width - 24, height - 54));
             GUILayout.Label("Email");
@@ -72,6 +74,14 @@ namespace ApexGTWorld.UI
             GUILayout.EndHorizontal();
             GUILayout.Label(walletStatus);
             GUILayout.Label(progressStatus);
+            GUILayout.Label("Race Result ID");
+            raceResultId = GUILayout.TextField(raceResultId, 36);
+            if (GUILayout.Button("CLAIM RACE REWARD", GUILayout.Height(34)))
+                StartCoroutine(client.ClaimRaceReward(raceResultId, (reward, error) =>
+                    rewardStatus = error ?? (reward == null ? "Reward unavailable" :
+                        (reward.applied ? "Reward credited" : "Reward already claimed") +
+                        " | +" + reward.reward_credits + " Credits | Balance: " + reward.credits_balance)));
+            GUILayout.Label(rewardStatus);
             GUILayout.Label("Status: " + status);
             GUILayout.Label("This is a development console, not the final game UI.");
             if (GUILayout.Button("HIDE", GUILayout.Height(26))) visible = false;

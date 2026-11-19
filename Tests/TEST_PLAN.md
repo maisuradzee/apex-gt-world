@@ -17,12 +17,15 @@
 - [ ] Verify touch controls and camera switching on device.
 
 ## Backend
-- [ ] Apply migration only to dedicated APEX project.
-- [ ] RLS enabled for every table.
-- [ ] Player A cannot read Player B's private vehicles/wallet/progress.
-- [ ] Client cannot write wallet or ledger rows.
-- [ ] Duplicate idempotency key cannot double-credit a reward.
-- [ ] Server validates ownership before vehicle spawn/transfer.
+- [ ] Apply migrations only to dedicated APEX project.
+- [ ] RLS enabled for every public/private APEX table.
+- [ ] New Auth user receives a profile, wallet and progression row from the database trigger.
+- [ ] Player A cannot read Player B's private vehicles, wallet or career progress.
+- [ ] Client cannot write wallet, ledger, career progress or race-result rows.
+- [ ] Duplicate wallet idempotency key cannot double-credit.
+- [ ] Race reward endpoint verifies JWT, owner, validated result and finished session.
+- [ ] Repeated race reward claim does not create another ledger credit.
+- [ ] Race reward amount is read from the server-owned result row, never the request body.
 
 ## Multiplayer
 - [ ] Client cannot submit arbitrary final position/reward.

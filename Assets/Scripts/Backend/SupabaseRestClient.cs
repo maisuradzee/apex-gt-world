@@ -219,6 +219,44 @@ namespace ApexGTWorld.Backend
             });
         }
 
+        public IEnumerator ClaimRaceReward(string raceResultId, Action<ApexRaceRewardSettlement, string> completed)
+        {
+            if (!IsSignedIn)
+            {
+                completed?.Invoke(null, "Sign in before claiming a race reward.");
+                yield break;
+            }
+
+            if (!Guid.TryParse(raceResultId, out _))
+            {
+                completed?.Invoke(null, "Enter a valid race result ID.");
+                yield break;
+            }
+
+            // The client supplies only a result ID. Reward amount and player ID
+            // are derived and verified by the trusted Edge Function.
+            var body = JsonUtility.ToJson(new ApexRaceRewardClaimRequest
+            {
+                race_result_id = raceResultId
+            });
+
+            yield return Send("/functions/v1/settle-race-result", UnityWebRequest.kHttpVerbPOST, body, true, (json, error) =>
+            {
+                if (!string.IsNullOrEmpty(error)) { completed?.Invoke(null, error); return; }
+                try
+                {
+                    var result = JsonUtility.FromJson<ApexRaceRewardSettlement>(json);
+                    if (result == null || !result.ok)
+                    {
+                        completed?.Invoke(null, "Race reward endpoint returned an invalid response.");
+                        return;
+                    }
+                    completed?.Invoke(result, null);
+                }
+                catch (Exception ex) { completed?.Invoke(null, "Race reward parsing failed: " + ex.Message); }
+            });
+        }
+
         public IEnumerator FetchRegions(Action<ApexRegion[], string> completed)
         {
             if (!IsSignedIn) { completed?.Invoke(null, "Sign in before requesting world regions."); yield break; }

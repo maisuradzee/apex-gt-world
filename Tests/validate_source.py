@@ -230,6 +230,19 @@ for fragment in required_race_function:
 if "body.amount" in race_function or "body.user_id" in race_function or "body.currency" in race_function:
     raise SystemExit("Race reward endpoint must not accept amount, currency, or player identity from the client")
 
+# Race reward claim client sends only a result ID to the JWT-protected Edge Function.
+claim_start = client_source.find("public IEnumerator ClaimRaceReward")
+claim_end = client_source.find("public IEnumerator FetchRegions", claim_start)
+if claim_start < 0 or claim_end < 0:
+    raise SystemExit("ClaimRaceReward method is missing")
+claim_block = client_source[claim_start:claim_end]
+if '"/functions/v1/settle-race-result"' not in claim_block or "UnityWebRequest.kHttpVerbPOST" not in claim_block:
+    raise SystemExit("Race reward claim must call the deployed Edge Function with POST")
+if "race_result_id" not in claim_block or "body.amount" in claim_block or "p_amount" in claim_block:
+    raise SystemExit("Race reward client may send only the result ID, never a payout amount")
+if "client.ClaimRaceReward" not in (ROOT / "Assets/Scripts/Backend/SupabaseDebugPanel.cs").read_text(encoding="utf-8"):
+    raise SystemExit("Supabase debug panel must expose the race reward test action")
+
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
     for path in base.rglob("*"):

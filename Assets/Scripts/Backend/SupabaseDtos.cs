@@ -81,6 +81,23 @@ namespace ApexGTWorld.Backend
     }
 
     [Serializable]
+    internal sealed class ApexRaceRewardClaimRequest
+    {
+        public string race_result_id;
+    }
+
+    [Serializable]
+    public sealed class ApexRaceRewardSettlement
+    {
+        public bool ok;
+        public bool applied;
+        public long reward_credits;
+        public long credits_balance;
+        public long premium_tokens_balance;
+        public string race_result_id;
+    }
+
+    [Serializable]
     public sealed class ApexRegion
     {
         public string region_id;

@@ -4,16 +4,18 @@
 - [x] Product choices and architecture outline.
 - [x] Unity starter C# source and Editor scene generator.
 - [x] Android build menu script.
-- [x] Car and motorcycle test-scene setup.
-- [x] Scene registration preserves existing Build Settings scenes.
+- [x] Car and motorcycle test-scene setup; preserve existing Build Settings.
 - [x] Supabase schema with RLS and least-privilege client grants.
 - [x] Dedicated Supabase project provisioned and reachable.
-- [x] Migrations 0001–0005 applied and recorded.
-- [x] Auth bootstrap trigger verified using a rollback-safe transaction.
-- [x] Trusted service_role read/write privileges verified for current and future tables.
+- [x] Migrations 0001–0006 applied and recorded.
+- [x] Auth bootstrap trigger verified transactionally.
+- [x] Trusted service_role privileges verified.
 - [x] Atomic, idempotent wallet transaction RPC implemented and rollback-tested.
+- [x] Player Wallet/Career RLS isolation tested.
+- [x] JWT-protected race reward Edge Function deployed; it trusts only validated server result data.
+- [x] Unity Wallet/Career reads and race reward claim bridge added.
 - [x] Security Advisor clean; player/client privilege boundaries verified.
-- [x] GitHub source tree committed to `main`; CI source validation passes.
+- [ ] Final CI for Unity race-claim client and documentation.
 - [ ] Unity 6 LTS URP project opened and exact Editor/package versions pinned.
 
 ## Gate 1 — Offline vehicle vertical slice
@@ -30,10 +32,9 @@
 - [ ] Add garage and vehicle selection.
 
 ## Gate 3 — Backend integration
-- [ ] Confirm Data API is enabled and Auth redirect settings are configured.
-- [ ] Verify real Unity Auth sign-up/sign-in, profile PATCH and regions GET.
-- [ ] Implement trusted Edge Function/dedicated-server endpoint that validates authoritative events before wallet RPC.
-- [ ] Implement purchase, inventory and vehicle ownership transactions.
+- [ ] Implement authoritative race server to create/validate results and calculate reward_credits.
+- [ ] Verify real Unity Auth, profile, Wallet/Career and Edge Function claim flows.
+- [ ] Implement trusted purchase, inventory, vehicle ownership and progression APIs.
 - [ ] Add secure refresh-token storage.
 - [ ] Add integration tests for owner isolation, idempotency and failure handling.
 
@@ -42,7 +43,7 @@
 - [ ] Add player replication and interest management.
 - [ ] Implement disconnect/reconnect recovery.
 - [ ] Add region directory and handoff.
-- [ ] Add dedicated race server and server-validated results.
+- [ ] Integrate race-server results with the deployed settlement endpoint.
 
 ## Gate 5 — Game systems
 - [ ] Racing career, time attack, drift and endurance.
