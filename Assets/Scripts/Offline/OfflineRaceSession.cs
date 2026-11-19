@@ -30,6 +30,8 @@ namespace ApexGTWorld.Offline
         public OfflineRaceDefinition Definition => definition;
         public bool IsPlayerFinished { get; private set; }
         public float PlayerFinishTimeSeconds { get; private set; }
+        public float ElapsedSeconds => IsPlayerFinished ? PlayerFinishTimeSeconds : Mathf.Max(0f, Time.time - startedAt);
+        public bool PlayerRewardApplied { get; private set; }
         public string Status { get; private set; } = "RUNNING";
         public IReadOnlyList<OfflineRaceParticipant> Participants => participants;
 
@@ -85,7 +87,7 @@ namespace ApexGTWorld.Offline
                     playerRewardApplied = true;
                     OfflineGameManager manager = OfflineGameManager.Instance;
                     if (manager != null)
-                        manager.CompleteEvent(definition.eventId, definition.rewardCredits,
+                        PlayerRewardApplied = manager.CompleteEvent(definition.eventId, definition.rewardCredits,
                             definition.rewardXp, definition.rewardDistanceMeters);
                 }
                 Status = "PLAYER FINISHED";
