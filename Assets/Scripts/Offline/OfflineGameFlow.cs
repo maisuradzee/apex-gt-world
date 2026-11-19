@@ -349,6 +349,8 @@ namespace ApexGTWorld.Offline
 
         private void SetGameplayEnabled(bool enabled)
         {
+            if (!enabled && vehicle != null)
+                vehicle.SetInput(new VehicleInput());
             if (vehicle != null) vehicle.enabled = enabled;
             if (keyboardInput != null) keyboardInput.enabled = enabled;
             if (hudRoot != null) hudRoot.SetActive(enabled);
