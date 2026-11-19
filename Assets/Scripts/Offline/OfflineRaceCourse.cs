@@ -102,6 +102,7 @@ namespace ApexGTWorld.Offline
             };
             float[] rotations = { 0f, 90f, 180f, 270f };
             checkpoints = new OfflineRaceCheckpoint[positions.Length];
+            BuildRoad(positions);
 
             for (int i = 0; i < positions.Length; i++)
             {
@@ -110,7 +111,7 @@ namespace ApexGTWorld.Offline
                 gate.transform.SetParent(transform, true);
                 gate.transform.position = positions[i];
                 gate.transform.rotation = Quaternion.Euler(0f, rotations[i], 0f);
-                gate.transform.localScale = new Vector3(10f, 4f, 0.25f);
+                gate.transform.localScale = new Vector3(10f, 4f, 1.5f);
 
                 BoxCollider collider = gate.GetComponent<BoxCollider>();
                 collider.isTrigger = true;
@@ -122,6 +123,68 @@ namespace ApexGTWorld.Offline
                     : new Color(0.1f, 0.55f, 0.9f, 0.75f);
                 checkpoints[i] = checkpoint;
             }
+        }
+
+
+        private void BuildRoad(Vector3[] positions)
+        {
+            Material roadMaterial = CreateTrackMaterial(new Color(0.075f, 0.085f, 0.10f));
+            Material lineMaterial = CreateTrackMaterial(new Color(0.82f, 0.86f, 0.88f));
+            Material centerMaterial = CreateTrackMaterial(new Color(0.92f, 0.72f, 0.16f));
+
+            for (int i = 0; i < positions.Length; i++)
+            {
+                Vector3 from = positions[i];
+                Vector3 to = positions[(i + 1) % positions.Length];
+                Vector3 direction = to - from;
+                direction.y = 0f;
+                float length = direction.magnitude;
+                Quaternion rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+                Vector3 midpoint = (from + to) * 0.5f;
+                midpoint.y = 0.025f;
+
+                CreateTrackBlock("Offline Asphalt", midpoint, rotation,
+                    new Vector3(10f, 0.08f, length + 8f), roadMaterial);
+
+                Vector3 right = rotation * Vector3.right;
+                CreateTrackBlock("Track Edge Left", midpoint - right * 4.65f + Vector3.up * 0.05f,
+                    rotation, new Vector3(0.18f, 0.035f, length + 5f), lineMaterial);
+                CreateTrackBlock("Track Edge Right", midpoint + right * 4.65f + Vector3.up * 0.05f,
+                    rotation, new Vector3(0.18f, 0.035f, length + 5f), lineMaterial);
+
+                const int dashCount = 7;
+                for (int dash = 0; dash < dashCount; dash++)
+                {
+                    float t = (dash + 0.5f) / dashCount;
+                    Vector3 dashPosition = Vector3.Lerp(from, to, t);
+                    dashPosition.y = 0.085f;
+                    CreateTrackBlock("Center Line", dashPosition, rotation,
+                        new Vector3(0.12f, 0.025f, 1.7f), centerMaterial);
+                }
+            }
+        }
+
+        private void CreateTrackBlock(string objectName, Vector3 position, Quaternion rotation,
+            Vector3 scale, Material material)
+        {
+            GameObject block = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            block.name = objectName;
+            block.transform.SetParent(transform, true);
+            block.transform.SetPositionAndRotation(position, rotation);
+            block.transform.localScale = scale;
+            Collider collider = block.GetComponent<Collider>();
+            if (collider != null) Destroy(collider);
+            Renderer renderer = block.GetComponent<Renderer>();
+            if (renderer != null) renderer.sharedMaterial = material;
+        }
+
+        private static Material CreateTrackMaterial(Color color)
+        {
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null) shader = Shader.Find("Standard");
+            Material material = new Material(shader);
+            material.color = color;
+            return material;
         }
 
         private void BuildAiGrid()
