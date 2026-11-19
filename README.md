@@ -3,7 +3,7 @@
 Android-first, mobile-optimized open-world motorsport and roleplay game foundation.
 
 ## Current project state
-The Unity starter source tree is committed to `main`. GitHub Actions validates source/security rules, type-checks Edge Functions, builds the .NET race-server library and runs its HTTP contract plus race-session domain tests. This remains a **starter foundation**, not a completed playable game.
+The Unity starter source tree is committed to `main`. GitHub Actions validates source/security rules, type-checks Edge Functions, builds the .NET race-server library and Windows Service host, publishes a self-contained Windows x64 artifact, and runs the HTTP contract plus race-session domain tests. This remains a **starter foundation**, not a completed playable game.
 
 ## Product and technical baseline
 - Android first; keep architecture iOS-compatible.
@@ -26,7 +26,8 @@ The Unity starter source tree is committed to `main`. GitHub Actions validates s
 - `supabase/functions` — JWT-protected reward claim and secret-protected race control functions.
 - `Server/RaceServer` — .NET 8 race-session runtime, lifecycle coordinator and protected Supabase control client.
 - `Server/RaceServer.Tests` — HTTP contract, race-session domain and coordinator tests.
-- `Server/RaceServer/Windows` — secure Windows environment setup script for the dedicated race-server host.
+- `Server/RaceServer.Host` — .NET 8 Windows Service process host.
+- `Server/RaceServer/Windows` — Windows publish, environment and service installation scripts.
 - `Documentation` and `Tests` — architecture, setup, acceptance tests and validators.
 
 ## Unity setup
