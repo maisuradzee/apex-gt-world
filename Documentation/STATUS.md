@@ -9,10 +9,11 @@
 - [x] Auth profile/wallet/progression bootstrap.
 - [x] Service-only atomic idempotent wallet transaction RPC.
 - [x] Service-only race start/finalize RPCs; rollback tests passed for lifecycle and reward.
+- [x] Race finalization hardened: unique placements, integer-only scores/times/payouts; rejection and two-player success tests passed.
 - [x] JWT-protected player reward claim function `settle-race-result` deployed ACTIVE.
 - [x] Shared-token protected race control function `race-session-control` deployed ACTIVE.
 - [x] .NET 8 race-server control client added; uses environment variables, no Supabase service-role key.
-- [x] GitHub CI validates source/security, Deno functions and .NET client build (workflow updated; latest CI result pending).
+- [x] GitHub CI passed source/security validation, Deno type-checks for both Edge Functions, and .NET 8 race-server client build.
 
 ## Pending / not verified
 - [ ] Set `APEX_RACE_SERVER_TOKEN` in Supabase Edge Function secrets and dedicated server environment.
@@ -24,6 +25,6 @@
 - [ ] Art, audio, tracks, multiplayer load and device performance tests.
 
 ## Supabase state
-`GTWORLD` (`hzawgrvonsqyqjyzzreg`, eu-west-1) is `ACTIVE_HEALTHY`. Seven migrations recorded. Security Advisor reports no findings after migration 0007. Race and wallet DB transaction tests rolled back test data. Migration 0008 still needs a post-apply security review. Edge Functions `settle-race-result` (JWT) and `race-session-control` (custom server token) are ACTIVE. The race control token is not configured through this integration and must be set in Edge Function Secrets plus the server host environment.
+`GTWORLD` (`hzawgrvonsqyqjyzzreg`, eu-west-1) is `ACTIVE_HEALTHY`. Eight migrations recorded. Security Advisor reports no findings. Privilege audit confirms only `service_role` can execute race lifecycle RPCs; client roles cannot write results. Strict race validation test passed and all test data rolled back. Edge Functions `settle-race-result` (JWT) and `race-session-control` (custom server token) are ACTIVE. The race control token is not configured through this integration and must be set in Edge Function Secrets plus the server host environment.
 
 This remains a source/backend foundation, not a playable or production-ready game.

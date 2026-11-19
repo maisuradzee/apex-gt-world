@@ -9,7 +9,7 @@
 - [x] Race control Edge Function deployed with shared-token authentication.
 - [x] .NET 8 race-server control client prepared.
 - [ ] Configure `APEX_RACE_SERVER_TOKEN` securely in Supabase and server environment.
-- [ ] Pass Deno type checks and .NET 8 build in GitHub Actions.
+- [x] Pass Deno type checks and .NET 8 build in GitHub Actions.
 
 ## Gate 1 — Offline vehicle vertical slice
 - [ ] Open Unity 6 LTS URP project and compile.

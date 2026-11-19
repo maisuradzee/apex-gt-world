@@ -22,7 +22,7 @@ All eight migrations are applied to `GTWORLD`.
 - Wallet RPC locks the wallet row and checks idempotency and non-negative balances.
 - Race result payout is bounded 0..1,000,000,000; client roles cannot write race results.
 - `apex_server_start_race_session` and `apex_server_finalize_race_session` are executable only by `service_role`.
-- Finalize validates the complete result set, writes `validated=true`, sets session `finished` atomically, accepts identical retries and rejects conflicting retries.
+- Finalize validates the complete result set, requires a unique placement and whole-number score/time/payout, writes `validated=true`, sets session `finished` atomically, accepts identical retries and rejects conflicting retries.
 
 ## Verified
 - 12 tables total: 11 public and one private; RLS on all 12.
@@ -31,8 +31,9 @@ All eight migrations are applied to `GTWORLD`.
 - Wallet transaction RPC passed award, duplicate replay, debit, overdraft and payload-mismatch tests.
 - Player RLS test confirmed wallet/career owner isolation.
 - Race lifecycle transaction test confirmed start, repeated start, finalize, identical retry and one wallet ledger award; rollback left no test data.
+- Migration 0008 rejection tests passed for duplicate placements, fractional Credits payout and fractional finish time. Valid two-player results finalized with two unique placements; one 250 Credits wallet ledger row was created. Rollback removed both test users, session, results, wallets and ledgers.
 - Service-only permissions verified for wallet and race lifecycle RPCs.
-- Security Advisor returned no findings.
+- Security Advisor returned no findings after migration 0007; migration 0008 adds no new exposed tables or client grants.
 
 ## Race control Edge Function
 `race-session-control` is deployed ACTIVE with `verify_jwt=false` because it authenticates the dedicated race server itself with a shared secret header. It supports create, start and finalize actions and holds the Supabase service-role key inside the Edge Function only.

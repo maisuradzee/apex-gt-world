@@ -19,6 +19,7 @@ Run these tests against the dedicated APEX GT WORLD project only.
 - [ ] Run the authoritative simulation and calculate results/payout on the server.
 - [ ] Call finalize; verify `validated=true` result rows and session `finished`.
 - [ ] Retry identical finalize; verify no duplicate result.
+- [ ] Submit duplicate placements, fractional placement, score, finish time or payout; verify rejection.
 - [ ] Try changed placement/score/payout after finish; verify rejection.
 - [ ] Verify no player JWT, anon or authenticated role can call lifecycle RPCs.
 

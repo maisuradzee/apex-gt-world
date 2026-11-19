@@ -9,17 +9,17 @@
 Unity uses the supplied publishable key. Never store `service_role`, `sb_secret_...`, database password or server token in Unity or source control.
 
 ## Applied migrations
-All eight migrations 0001–0007 are applied. They establish 11 public RLS tables, a private secret table, Auth bootstrap, service-role grants, idempotent wallet settlement, server-owned race reward amount and atomic race start/finalize RPCs.
+All eight migrations 0001–0008 are applied. They establish 11 public RLS tables, a private secret table, Auth bootstrap, service-role grants, idempotent wallet settlement, server-owned race reward amount and atomic race start/finalize RPCs.
 
 ## Verified DB boundaries
 - Client roles cannot write wallet balances, ledger, career progress or race-result rows.
 - Player reads are owner-scoped for wallet and career.
 - Profile client update is restricted to display_name.
 - Wallet RPC uses row locking, balance checks and an idempotency key.
-- Race lifecycle functions validate result payloads, set validated=true, finalize the session atomically and accept only identical retries.
+- Race lifecycle functions validate result payloads, require unique placements and whole-number score/time/reward values, set validated=true, finalize the session atomically and accept only identical retries.
 - Wallet and race lifecycle functions are callable only by service_role.
-- Auth, wallet and race lifecycle transaction tests passed and rolled back all generated test data.
-- Supabase Security Advisor reports no findings.
+- Auth, wallet, race lifecycle and strict numeric validation transaction tests passed and rolled back all generated test data.
+- Supabase Security Advisor reports no findings; migration 0008 was followed by a new privilege/index/rollback audit.
 
 ## Edge Functions
 ### settle-race-result

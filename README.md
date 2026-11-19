@@ -44,6 +44,7 @@ Target: `GTWORLD` (`hzawgrvonsqyqjyzzreg`, `eu-west-1`), verified `ACTIVE_HEALTH
 - `0005_apex_wallet_transactions.sql` — atomic idempotent wallet adjustment.
 - `0006_apex_race_reward_settlement.sql` — server-owned race payout field.
 - `0007_apex_authoritative_race_lifecycle.sql` — server-only race start/finalize RPCs.
+- `0008_apex_race_result_integer_validation.sql` — unique placements and integer-only race result validation.
 
 The `settle-race-result` function is ACTIVE with JWT verification. The `race-session-control` function is ACTIVE with its own shared-token verification. The database lifecycle and reward path were transaction-tested; rollback removed all test rows. Security Advisor reports no findings.
 
