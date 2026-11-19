@@ -407,6 +407,8 @@ for fragment in [
     "CreateAsync",
     "CreateSessionAsync",
     "StartSessionAsync",
+    "race_started_at",
+    "DateTimeOffset.TryParse",
     "RecordCheckpoint",
     "FinalizeSessionAsync",
     "BuildFinalResults",
