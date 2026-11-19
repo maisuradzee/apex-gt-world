@@ -82,7 +82,7 @@ namespace ApexGTWorld.RaceServer
                 !DateTimeOffset.TryParse(
                     startedAtElement.GetString(),
                     CultureInfo.InvariantCulture,
-                    DateTimeStyles.RoundtripKind,
+                    DateTimeStyles.None,
                     out var databaseStartedAt) ||
                 databaseStartedAt == default)
             {
