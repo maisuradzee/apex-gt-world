@@ -14,6 +14,7 @@ REQUIRED = [
     "Database/Migrations/0002_apex_security_and_region_indexes.sql",
     "Database/Migrations/0003_apex_auth_user_bootstrap.sql",
     "Database/Migrations/0004_apex_service_role_privileges.sql",
+    "Database/Migrations/0005_apex_wallet_transactions.sql",
 ]
 
 for relative in REQUIRED:
@@ -146,6 +147,28 @@ if "Sign out before creating a new account." not in client_source:
 refresh_block = client_source[client_source.find("public IEnumerator RefreshSession"):client_source.find("public IEnumerator SignOut")]
 if "invalid refreshed session" not in refresh_block:
     raise SystemExit("RefreshSession must reject invalid Auth responses")
+
+# Wallet settlement must be atomic, idempotent, and callable only by trusted backend code.
+wallet_sql = (ROOT / "Database/Migrations/0005_apex_wallet_transactions.sql").read_text(encoding="utf-8").lower()
+required_wallet = [
+    "create or replace function public.apex_server_apply_wallet_delta(",
+    "security definer",
+    "set search_path = ''",
+    "for update",
+    "from public.apex_wallet_ledger",
+    "idempotency_key = v_key",
+    "insufficient credits balance",
+    "insufficient premium tokens balance",
+    "revoke all on function public.apex_server_apply_wallet_delta(uuid, text, bigint, text, text, jsonb)",
+    "from public, anon, authenticated",
+    "grant execute on function public.apex_server_apply_wallet_delta(uuid, text, bigint, text, text, jsonb)",
+    "to service_role",
+]
+for fragment in required_wallet:
+    if fragment not in wallet_sql:
+        raise SystemExit("Missing wallet transaction safety statement: " + fragment)
+if "grant execute on function public.apex_server_apply_wallet_delta(uuid, text, bigint, text, text, jsonb) to authenticated" in wallet_sql:
+    raise SystemExit("Wallet transaction RPC must never be executable by authenticated clients")
 
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
