@@ -1,8 +1,8 @@
 # Unity Editor Setup
 
-1. Install Unity Hub and a supported Unity 6 LTS Editor.
-2. Install Android Build Support, Android SDK & NDK Tools, and OpenJDK from the Editor's Add Modules menu.
-3. Use the `feature/offline-first-foundation` branch of the repository while the offline changes are under review. Create a new `3D (URP)` Unity project named `APEX_GT_WORLD`.
+1. Install Unity Hub and **Unity 6.3 LTS `6000.3.28f1`**. Install Android Build Support, Android SDK & NDK Tools, and OpenJDK if building for Android.
+2. If you do not already have a URP starter project, create a new `3D (URP)` project in Unity Hub/Editor first so Unity generates compatible URP assets and Graphics settings.
+3. Use the `feature/offline-first-foundation` branch of the repository while the offline changes are under review. Copy the repository's `Assets/`, `Packages/manifest.json` and `ProjectSettings/ProjectVersion.txt` into the URP project, preserving the generated `Assets/Settings` URP pipeline assets and the rest of the generated `ProjectSettings`.
 4. Copy the provided `Assets/` folder and `.gitignore` into the project. Keep generated `ProjectSettings/ProjectVersion.txt`, URP assets and `Packages/manifest.json` from the Unity Editor project.
 5. Open the project and wait for import/compile. Resolve any package/API issues in the Console before continuing.
 6. In the Unity menu select `APEX GT WORLD > Setup > Generate Starter Car Scene`. This creates `Assets/Scenes/Bootstrap.unity` and adds it to Build Settings. It overwrites that specific generated scene if it already exists.
