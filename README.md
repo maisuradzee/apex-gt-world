@@ -3,7 +3,7 @@
 Android-first, mobile-optimized open-world motorsport and roleplay game foundation. The first playable milestone is **offline single-player**.
 
 ## Current project state
-The project is moving to an offline-first playable milestone. Starter scenes now use a device-local profile and save system; the cloud backend and race-server work are retained for a later online phase. This is still a starter foundation, not a finished open-world game. GitHub Actions validates source/security rules, type-checks Edge Functions, builds the .NET race-server library and Windows Service host, publishes a self-contained Windows x64 artifact, and runs the HTTP contract plus race-session domain tests. This remains a **starter foundation**, not a completed playable game.
+The project is moving to an offline-first playable milestone. The generated car scene now has a main menu, Free Drive, a two-lap local circuit event with four checkpoints and three AI cars, a Garage with saved upgrades, and a device-local save system. The existing cloud backend and race-server work are retained for a later online phase. This is a prototype vertical slice, not the finished open-world game. GitHub Actions validates source/security rules, type-checks Edge Functions, builds the .NET race-server library and Windows Service host, publishes a self-contained Windows x64 artifact, and runs the HTTP contract plus race-session domain tests. This remains a **starter foundation**, not a completed playable game.
 
 ## Product and technical baseline
 - Android first; keep architecture iOS-compatible.
@@ -20,7 +20,7 @@ The project is moving to an offline-first playable milestone. Starter scenes now
 - `Assets/Scripts/MotorcyclePhysics` — motorcycle balance/lean prototype.
 - `Assets/Scripts/Camera` — camera mode and follow logic.
 - `Assets/Scripts/World` — region metadata and scene-loading foundation.
-- `Assets/Scripts/Offline` — local player profile, versioned save store, offline progression and local economy foundation.
+- `Assets/Scripts/Offline` — local player profile, versioned save store, main-menu flow, career race/checkpoints, AI opponents, Garage upgrades and local economy foundation.
 - `Assets/Scripts/Backend` — optional later online Supabase Auth, profile, wallet, career and race reward client.
 - `Assets/Editor` — starter scene generators and Android build menu.
 - `Database/Migrations` — Supabase schema, security, Auth bootstrap, wallet and race lifecycle.
@@ -44,7 +44,18 @@ The project is moving to an offline-first playable milestone. Starter scenes now
 - Local profile, credits, career XP/level, selected/owned vehicles, unlocked regions, completed events and distance are stored below Unity `Application.persistentDataPath`.
 - The save file is versioned and keeps a backup for recovery. Saves occur periodically and when the app pauses or quits.
 - Local rewards are single-player progression only. They are not trusted for online leaderboards, competitive placements or cloud wallet payouts.
-- The first generated scenes are still small vehicle test areas with placeholder geometry, not the complete open world.
+- The first generated car scene is a compact placeholder circuit/test area with primitive geometry, one career event and three simple waypoint AI drivers. It does not yet contain the finished Metro City environment or production vehicle art/physics.
+
+## First offline play loop
+1. Open the project in Unity 6 LTS with URP.
+2. Generate the Starter Car Scene from `APEX GT WORLD > Setup`.
+3. Press Play. The offline menu opens without requiring login or internet.
+4. Start Free Drive or open Career and start the Metro Circuit Club Cup (two laps, four ordered gates, three AI opponents).
+5. Finish the event to earn a one-time local reward of 500 Credits and 250 XP.
+6. Open Garage and purchase Engine, Handling or Brakes upgrades (250 Credits each). Upgrades change the starter car's tuning and persist locally.
+7. Stop Play Mode and launch again; the local profile and upgrades should remain.
+
+Editor controls: WASD / arrow keys to steer and accelerate, Space to brake, Left Shift for handbrake, V to switch camera, Escape to pause. Android uses the generated touch controls.
 
 ## Optional online backend (later phase)
 Target: `GTWORLD` (`hzawgrvonsqyqjyzzreg`, `eu-west-1`), verified `ACTIVE_HEALTHY`. Ten migrations are applied:
