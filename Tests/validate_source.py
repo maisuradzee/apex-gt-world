@@ -13,6 +13,7 @@ REQUIRED = [
     "Assets/Scripts/Offline/OfflinePlayerProfile.cs",
     "Assets/Scripts/Offline/OfflineSaveStore.cs",
     "Assets/Scripts/Offline/OfflineGameManager.cs",
+    "Assets/Scripts/Core/GameBootstrap.cs",
     "Assets/Scripts/Offline/OfflineGameFlow.cs",
     "Assets/Scripts/Offline/OfflineRaceParticipant.cs",
     "Assets/Scripts/Offline/OfflineRaceCheckpoint.cs",
@@ -174,6 +175,10 @@ if "UnityWebRequest" in offline_manager or "Supabase" in offline_manager:
     raise SystemExit("Offline gameplay manager must not depend on Supabase or network requests")
 if "AddOfflineGameManager();" not in scene_source or "AddSupabaseDebugConsole();" in scene_source:
     raise SystemExit("Generated starter scenes must launch with local offline profile support, not the Supabase debug console")
+
+offline_bootstrap = (ROOT / "Assets/Scripts/Core/GameBootstrap.cs").read_text(encoding="utf-8")
+if "showDevelopmentHud = false" not in offline_bootstrap:
+    raise SystemExit("Generated offline menu should not be obscured by the development overlay")
 
 offline_vehicle = (ROOT / "Assets/Scripts/VehiclePhysics/VehicleController.cs").read_text(encoding="utf-8")
 if "ApplyGarageUpgrades" not in offline_vehicle:
