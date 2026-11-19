@@ -118,9 +118,9 @@ sealed class RecordingHandler : HttpMessageHandler
         var operation = document.RootElement.GetProperty("operation").GetString();
         var response = operation switch
         {
-            "create" => $$"""{"ok":true,"operation":"create","session":{"race_session_id":"{{_sessionId}}","race_status":"created","applied":true}}""",
-            "start" => $$"""{"ok":true,"operation":"start","result":{"race_session_id":"{{_sessionId}}","race_status":"running","was_started":true}}""",
-            "finalize" => $$"""{"ok":true,"operation":"finalize","results":[{"result_id":"00000000-0000-4000-8000-000000000444","user_id":"{{_playerId}}","placement":1,"reward_credits":250,"applied":true}]}""",
+            "create" => $"{{\"ok\":true,\"operation\":\"create\",\"session\":{{\"race_session_id\":\"{_sessionId}\",\"race_status\":\"created\",\"applied\":true}}}}",
+            "start" => $"{{\"ok\":true,\"operation\":\"start\",\"result\":{{\"race_session_id\":\"{_sessionId}\",\"race_status\":\"running\",\"was_started\":true}}}}",
+            "finalize" => $"{{\"ok\":true,\"operation\":\"finalize\",\"results\":[{{\"result_id\":\"00000000-0000-4000-8000-000000000444\",\"user_id\":\"{_playerId}\",\"placement\":1,\"reward_credits\":250,\"applied\":true}}]}}",
             _ => """{"ok":false,"error":"unsupported"}"""
         };
 
