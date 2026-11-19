@@ -376,6 +376,7 @@ for fragment in [
     "MarkDidNotFinish",
     "Disqualify",
     "BuildFinalResults",
+    "TerminalReasonCode",
     "MidpointRounding.AwayFromZero",
     "_finalResults",
     "Server reward calculator returned an amount outside the allowed range",
