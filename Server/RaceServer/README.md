@@ -13,7 +13,7 @@ The Supabase-managed `SUPABASE_SERVICE_ROLE_KEY` stays inside the Edge Function.
 
 ## API lifecycle
 1. `CreateSessionAsync(regionId, discipline, requestKey)` creates a session in `created`. Supply one stable non-empty GUID per logical create request; reuse it for network retries. The same key/parameters return the same session; changing region or discipline while reusing the key is rejected.
-2. `StartSessionAsync(sessionId)` changes it to `running`; repeated start while running is safe.
+2. `StartAsync()` changes the database session to `running` and starts the local runtime using PostgreSQL's returned `started_at` value; repeated database start while running returns the original timestamp.
 3. The race runtime tracks entrants, server timestamps, ordered checkpoint progress and terminal states; the host's authoritative vehicle physics and movement validation still need to be integrated.
 4. `FinalizeSessionAsync(sessionId, results)` submits validated placements, finish times, scores and server-calculated Credits payouts atomically.
 5. The player separately claims their own result through the JWT-protected `settle-race-result` function.
