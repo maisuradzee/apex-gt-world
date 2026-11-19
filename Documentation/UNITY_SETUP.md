@@ -13,6 +13,8 @@
 10. Open **Garage**. Engine, Handling and Brakes upgrades cost 250 local Credits each, persist on the device and change the prototype vehicle's tuning.
 11. Select `APEX GT WORLD > Build > Build Android APK` only after the Editor smoke tests pass.
 
+The setup script requires Windows PowerShell and `robocopy` (included with Windows). Create the target project from the 3D (URP) template first.
+
 ## 2. Controls
 - Keyboard: WASD / arrow keys to steer and accelerate.
 - Space: brake.
