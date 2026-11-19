@@ -1,0 +1,107 @@
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ApexGTWorld.RaceServer
+{
+    /// <summary>
+    /// Coordinates the local authoritative race runtime with the protected
+    /// Supabase session lifecycle API. Run one coordinator per live race session.
+    /// </summary>
+    public sealed class RaceSessionCoordinator
+    {
+        private readonly RaceControlClient _control;
+        private readonly RaceSessionRuntime _runtime;
+
+        private RaceSessionCoordinator(RaceControlClient control, RaceSessionRuntime runtime)
+        {
+            _control = control;
+            _runtime = runtime;
+        }
+
+        public Guid SessionId => _runtime.SessionId;
+        public RaceRuntimeStatus Status => _runtime.Status;
+        public int EntrantCount => _runtime.EntrantCount;
+
+        public static async Task<RaceSessionCoordinator> CreateAsync(
+            RaceControlClient control,
+            string regionId,
+            string discipline,
+            Guid requestKey,
+            IReadOnlyList<string> orderedCheckpointIds,
+            CancellationToken cancellationToken = default)
+        {
+            if (control is null)
+                throw new ArgumentNullException(nameof(control));
+
+            // Validate local course configuration before creating a remote row.
+            _ = new RaceSessionRuntime(Guid.NewGuid(), regionId, discipline, orderedCheckpointIds);
+
+            var response = await control.CreateSessionAsync(
+                regionId,
+                discipline,
+                requestKey,
+                cancellationToken).ConfigureAwait(false);
+
+            if (!response.Ok || response.Session is not JsonElement session ||
+                !session.TryGetProperty("race_session_id", out var idElement) ||
+                idElement.ValueKind != JsonValueKind.String ||
+                !Guid.TryParse(idElement.GetString(), out var sessionId) ||
+                sessionId == Guid.Empty)
+            {
+                throw new InvalidOperationException("Race control did not return a valid created session ID.");
+            }
+
+            var runtime = new RaceSessionRuntime(sessionId, regionId, discipline, orderedCheckpointIds);
+            return new RaceSessionCoordinator(control, runtime);
+        }
+
+        public void AddEntrant(Guid userId) => _runtime.AddEntrant(userId);
+
+        public async Task StartAsync(
+            DateTimeOffset serverStartTime,
+            CancellationToken cancellationToken = default)
+        {
+            if (_runtime.Status != RaceRuntimeStatus.Created || _runtime.EntrantCount < 1)
+                throw new InvalidOperationException("Register at least one entrant before starting the race.");
+            if (serverStartTime == default)
+                throw new ArgumentException("A valid server start time is required.", nameof(serverStartTime));
+
+            var response = await _control.StartSessionAsync(SessionId, cancellationToken).ConfigureAwait(false);
+            if (!response.Ok)
+                throw new InvalidOperationException("Race control rejected the session start.");
+
+            // Only begin local timing after the durable server-side transition succeeds.
+            _runtime.Start(serverStartTime);
+        }
+
+        public void RecordCheckpoint(Guid userId, string checkpointId, DateTimeOffset serverEventTime) =>
+            _runtime.RecordCheckpoint(userId, checkpointId, serverEventTime);
+
+        public void MarkDidNotFinish(Guid userId, string reasonCode, DateTimeOffset serverEventTime) =>
+            _runtime.MarkDidNotFinish(userId, reasonCode, serverEventTime);
+
+        public void Disqualify(Guid userId, string reasonCode, DateTimeOffset serverEventTime) =>
+            _runtime.Disqualify(userId, reasonCode, serverEventTime);
+
+        public async Task<IReadOnlyList<RaceResultSubmission>> FinalizeAsync(
+            Func<RaceStanding, long> serverRewardCalculator,
+            CancellationToken cancellationToken = default)
+        {
+            // The runtime caches this payload before network I/O. A transient HTTP
+            // failure can therefore be retried with the exact same result set.
+            var results = _runtime.BuildFinalResults(serverRewardCalculator);
+            var response = await _control.FinalizeSessionAsync(
+                SessionId,
+                results,
+                cancellationToken).ConfigureAwait(false);
+
+            if (!response.Ok)
+                throw new InvalidOperationException("Race control rejected race finalization.");
+
+            return results;
+        }
+    }
+}
