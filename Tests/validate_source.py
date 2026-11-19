@@ -281,10 +281,29 @@ for fragment in [
 if "SUPABASE_SERVICE_ROLE_KEY" in race_client or "sb_secret_" in race_client:
     raise SystemExit("Service-role or secret API keys must not be embedded in the race-server helper source")
 
+# Race control Edge Function is protected by the separate trusted-server token.
+race_control_source = (ROOT / "supabase/functions/race-session-control/index.ts").read_text(encoding="utf-8")
+required_control = [
+    'Deno.env.get("APEX_RACE_SERVER_TOKEN")',
+    'request.headers.get("x-apex-race-server-token")',
+    "crypto.subtle.digest",
+    'operation === "create"',
+    'operation === "start"',
+    'operation === "finalize"',
+    "apex_server_start_race_session",
+    "apex_server_finalize_race_session",
+    "SUPABASE_SERVICE_ROLE_KEY",
+]
+for fragment in required_control:
+    if fragment not in race_control_source:
+        raise SystemExit("Missing protected race control operation: " + fragment)
+if "auth.getUser(" in race_control_source:
+    raise SystemExit("Race control must not use player JWT as its server authentication mechanism")
+
 # Reject actual credential values in code/config. Public publishable keys are allowed.
-for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
+for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github", ROOT / "Server", ROOT / "supabase"):
     for path in base.rglob("*"):
-        if not path.is_file() or path.suffix.lower() not in {".cs", ".sql", ".yml", ".yaml", ".json"}:
+        if not path.is_file() or path.suffix.lower() not in {".cs", ".ts", ".sql", ".yml", ".yaml", ".json"}:
             continue
         content = path.read_text(encoding="utf-8", errors="ignore")
         if re.search(r"sb_secret_[A-Za-z0-9_-]{20,}|service_role\s*[:=]\s*['\"][^'\"]{20,}|-----BEGIN (?:RSA |EC )?PRIVATE KEY-----", content, re.I):

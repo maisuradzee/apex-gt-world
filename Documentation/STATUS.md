@@ -1,39 +1,29 @@
 # Build Status — 2026-11-19
 
-## Implemented in source and services
-- [x] Product/architecture baseline: Android-first, connected-region world, persistent online model, dual camera.
-- [x] Unity WheelCollider car prototype and separate motorcycle lean prototype.
-- [x] Car and motorcycle mobile touch-input adapters.
+## Implemented
+- [x] Android-first multi-region motorsport/RP game foundation and Unity starter source.
+- [x] Car and motorcycle input/physics prototypes, camera, region and scene-generation code.
 - [x] Editor scene generators preserve existing Build Settings scenes.
-- [x] Android IL2CPP/ARM64 build menu.
-- [x] Supabase UnityWebRequest Auth/PostgREST adapter and development debug panel.
-- [x] Dedicated Supabase project `GTWORLD` reachable and healthy.
-- [x] Migrations 0001–0007 applied: 11 public tables, RLS, restricted grants, private session secrets, Auth bootstrap, service grants, wallet RPC, race reward field and authoritative lifecycle RPCs.
-- [x] RLS verified on all 11 public tables and the private secrets table.
-- [x] Auth bootstrap trigger transaction test passed; rollback left no test rows.
-- [x] Wallet RPC test passed: idempotent award, debit, overdraft rejection and mismatch rejection.
-- [x] Player RLS test confirmed Wallet/Career owner isolation.
-- [x] Race lifecycle RPCs transaction-tested: start, idempotent start, finalize, idempotent finalize and one reward ledger credit; rollback left no test data.
-- [x] Service role has backend access; client roles cannot write wallet/race-result state or execute wallet/race lifecycle RPCs.
-- [x] `settle-race-result` Edge Function deployed ACTIVE with JWT verification enabled.
-- [x] Function verifies user, race-result owner, server validation, finished session and server-stored payout before settling idempotently.
-- [x] Unity Wallet/Career GET methods and race-reward claim bridge added to source.
-- [x] Supabase Security Advisor returned no findings after migration 0007.
+- [x] Seven Supabase migrations applied to dedicated GTWORLD project.
+- [x] RLS on all 11 public tables and private session-secret table.
+- [x] Auth profile/wallet/progression bootstrap.
+- [x] Service-only atomic idempotent wallet transaction RPC.
+- [x] Service-only race start/finalize RPCs; rollback tests passed for lifecycle and reward.
+- [x] JWT-protected player reward claim function `settle-race-result` deployed ACTIVE.
+- [x] Shared-token protected race control function `race-session-control` deployed ACTIVE.
+- [x] .NET 8 race-server control client added; uses environment variables, no Supabase service-role key.
+- [x] GitHub CI validates source/security, Deno functions and .NET client build (workflow updated; latest CI result pending).
 
-## Not completed or not verified
-- [ ] Dedicated authoritative race-server process that invokes lifecycle RPCs and validates simulation.
-- [ ] Live Unity Auth/PostgREST/Edge Function smoke tests.
-- [ ] Unity Editor compilation (not available in this execution environment).
-- [ ] Play-mode physics, camera and input validation.
-- [ ] Android APK build and physical-device installation.
-- [ ] Secure refresh-token persistence using Android Keystore/iOS Keychain.
-- [ ] Purchase, vehicle ownership, property/business and progression APIs.
-- [ ] Dedicated persistent-world server, replication, hosting and load tests.
-- [ ] Vehicle/motorcycle art, animation, audio, final tracks and world content.
-- [ ] Multiplayer anti-cheat, recovery and device performance tests.
+## Pending / not verified
+- [ ] Set `APEX_RACE_SERVER_TOKEN` in Supabase Edge Function secrets and dedicated server environment.
+- [ ] Implement authoritative race simulation, participant state, physics, result calculation and anti-cheat.
+- [ ] Run end-to-end race server → DB finalization → player reward claim with configured secret.
+- [ ] Live Unity Auth/PostgREST/Edge smoke tests.
+- [ ] Unity Editor compilation, Play Mode tests and Android APK/device testing.
+- [ ] Secure refresh-token persistence, purchase/vehicle/property/business APIs, world server/replication.
+- [ ] Art, audio, tracks, multiplayer load and device performance tests.
 
 ## Supabase state
-Target: `hzawgrvonsqyqjyzzreg` (`GTWORLD`, `eu-west-1`), `ACTIVE_HEALTHY`. Seven migrations are recorded. There are 11 public APEX tables and one private session-secret table, RLS enabled on all 12; four region seed rows exist. Security Advisor has no findings. `settle-race-result` is ACTIVE with JWT verification. Auth, wallet and race lifecycle rollback tests left no test records. Qulup and ASIX were not modified.
+`GTWORLD` (`hzawgrvonsqyqjyzzreg`, eu-west-1) is `ACTIVE_HEALTHY`. Seven migrations recorded. Security Advisor reports no findings. Race and wallet DB transaction tests rolled back test data. Edge Functions `settle-race-result` (JWT) and `race-session-control` (custom server token) are ACTIVE. The race control token is not configured through this integration and must be set in Edge Function Secrets plus the server host environment.
 
-## Scope note
-This is a starter source foundation with deployed backend race lifecycle primitives and a reward-settlement boundary, not yet a playable or production-ready game. The dedicated race-server process, Unity compilation and device testing remain required.
+This remains a source/backend foundation, not a playable or production-ready game.

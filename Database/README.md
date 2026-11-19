@@ -3,48 +3,44 @@
 The migrations under `Migrations/` target the dedicated APEX GT WORLD Supabase project only. Do not apply them to Qulup or ASIX.
 
 ## Migration order
-1. `0001_apex_core.sql` — initial schema, RLS, narrow client grants and private session-secret storage.
-2. `0002_apex_security_and_region_indexes.sql` — private session-secret deny policy and region foreign-key indexes.
-3. `0003_apex_auth_user_bootstrap.sql` — secure Auth trigger provisions profile, zeroed wallet and starter progression; removes direct client profile insertion.
-4. `0004_apex_service_role_privileges.sql` — grants trusted server-side access to current and future database objects.
-5. `0005_apex_wallet_transactions.sql` — atomic, idempotent wallet adjustment RPC restricted to `service_role`.
-6. `0006_apex_race_reward_settlement.sql` — adds a bounded, server-owned Credits payout to race results.
-7. `0007_apex_authoritative_race_lifecycle.sql` — service-only start/finalize RPCs for authoritative race sessions and result sets.
+1. `0001_apex_core.sql` — initial schema, RLS and narrow client grants.
+2. `0002_apex_security_and_region_indexes.sql` — private-session deny policy and indexes.
+3. `0003_apex_auth_user_bootstrap.sql` — Auth trigger provisions profile, wallet and progression.
+4. `0004_apex_service_role_privileges.sql` — trusted backend privileges for current and future objects.
+5. `0005_apex_wallet_transactions.sql` — atomic, idempotent wallet RPC.
+6. `0006_apex_race_reward_settlement.sql` — bounded server-owned race Credits payout.
+7. `0007_apex_authoritative_race_lifecycle.sql` — service-only race start/finalize RPCs.
 
 All seven migrations are applied to `GTWORLD`.
 
 ## Security model
-- RLS is enabled on all 11 client-facing `public.apex_*` tables and the private session-secret table.
-- Players can update only their own profile `display_name`; Reputation and `home_region` are server-controlled.
-- Auth sign-up provisions profile, wallet and progression in the same database transaction through a `SECURITY DEFINER` trigger with an empty search path.
-- The trigger function is not an exposed RPC; direct execute permission is revoked from client roles.
-- Wallet balances, ledger rows, career progress, vehicle ownership and race results are read-only to clients and owner-scoped where applicable.
-- `service_role` has full table permissions for trusted backend code. Never expose its key in a client app.
-- The race-session handshake key is stored in non-exposed `apex_private`.
-- Wallet mutation is performed by `apex_server_apply_wallet_delta`, a SECURITY DEFINER function with an empty search path, per-player row locking, balance checks and idempotency validation. Only `service_role` can execute it.
-- Race result `reward_credits` is bounded to 0..1,000,000,000 and client roles cannot write it.
-- `apex_server_start_race_session` locks a session and transitions `created` to `running`; a repeated start is idempotent.
-- `apex_server_finalize_race_session` accepts a bounded JSON result set, validates player IDs, placements, score, finish time and payout bounds, inserts `validated=true` results and sets the session to `finished` atomically. An identical retry returns existing results with `applied=false`; a different retry is rejected.
-- Both race lifecycle functions are executable only by `service_role`.
-- The `settle-race-result` Edge Function verifies caller JWT, result ownership, server validation and finished-session state. It accepts only a result ID and invokes the wallet RPC using a stable idempotency key.
+- RLS enabled on all 11 public APEX tables and the private session-secret table.
+- Player can update only own profile `display_name`; Reputation and `home_region` are server-controlled.
+- Auth trigger provisions profile, wallet and progression.
+- `service_role` has full table privileges; it is never placed in Unity.
+- Wallet RPC locks the wallet row and checks idempotency and non-negative balances.
+- Race result payout is bounded 0..1,000,000,000; client roles cannot write race results.
+- `apex_server_start_race_session` and `apex_server_finalize_race_session` are executable only by `service_role`.
+- Finalize validates the complete result set, writes `validated=true`, sets session `finished` atomically, accepts identical retries and rejects conflicting retries.
 
-## Verification completed
-- 12 APEX tables exist: 11 public and one private; RLS enabled on all 12.
-- Four world-region seed rows exist.
-- Auth trigger transaction test created exactly one profile, wallet and progression row; rollback removed the temporary user and generated rows.
-- `authenticated` cannot insert profiles, change Reputation, write wallet/ledger/vehicle/race-result rows, or read private session secrets. It can update only `display_name`.
-- `service_role` has SELECT/INSERT/UPDATE/DELETE on all 11 public tables and the private secret table.
-- Wallet RPC test: +100 Credits, repeat same key (no duplicate), -30 Credits, insufficient debit rejected, mismatched idempotency payload rejected. Rollback left no test Auth user, profile, wallet or ledger entries.
-- Race lifecycle test: start changed created to running; repeated start did not restart it; finalize created one validated result and finished the session; identical finalize returned existing data without a second result; a 250 Credits reward produced one ledger row. Rollback left no test records.
-- Service-only permissions for start/finalize RPCs were verified; authenticated and anon cannot execute them.
-- Race result payout field and range constraint exist; client roles cannot INSERT/UPDATE race results.
-- Edge Function `settle-race-result` is ACTIVE with JWT verification enabled.
-- Supabase Security Advisor returned no findings after migration 0007.
+## Verified
+- 12 tables total: 11 public and one private; RLS on all 12.
+- Four world-region seed rows.
+- Auth bootstrap transaction tested and rolled back.
+- Wallet transaction RPC passed award, duplicate replay, debit, overdraft and payload-mismatch tests.
+- Player RLS test confirmed wallet/career owner isolation.
+- Race lifecycle transaction test confirmed start, repeated start, finalize, identical retry and one wallet ledger award; rollback left no test data.
+- Service-only permissions verified for wallet and race lifecycle RPCs.
+- Security Advisor returned no findings.
 
-## Remaining checks
-1. Implement the dedicated race-server process that invokes start/finalize RPCs and calculates payouts from validated server-side results.
-2. Run real Unity Auth, Wallet/Career GET and Edge Function claim smoke tests.
-3. Implement trusted APIs for purchases, vehicle grants, property/business transfers and progression.
-4. Test owner isolation, refresh expiry, network errors, rate limits and transaction idempotency.
+## Race control Edge Function
+`race-session-control` is deployed ACTIVE with `verify_jwt=false` because it authenticates the dedicated race server itself with a shared secret header. It supports create, start and finalize actions and holds the Supabase service-role key inside the Edge Function only.
 
-Do not place service-role credentials in Unity. The database RPCs and Edge Function are trusted-server primitives, not player-controlled amount APIs.
+Before the control API can execute actions, set `APEX_RACE_SERVER_TOKEN` in Supabase Edge Function secrets and in the dedicated server environment to the same strong random value (at least 32 characters). This token is not stored in Git or Unity. The .NET 8 client reads it from environment variables.
+
+## Remaining
+1. Implement the authoritative simulation process that calculates race results and payouts.
+2. Configure the shared race-server token.
+3. Run end-to-end race-server → Edge Function → DB → player claim tests.
+4. Run real Unity Auth/PostgREST/Edge smoke tests and Android device validation.
+5. Implement purchase, vehicle, inventory, property/business and progression APIs.

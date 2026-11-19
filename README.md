@@ -3,7 +3,7 @@
 Android-first, mobile-optimized open-world motorsport and roleplay game foundation.
 
 ## Current project state
-The Unity starter source tree is committed to `main`. GitHub Actions source expansion and static source/security validation pass. This is a **starter source foundation**, not a completed playable game.
+The Unity starter source tree is committed to `main`. GitHub Actions validates source/security rules and now type-checks Edge Functions plus builds the .NET race-server control client. This remains a **starter foundation**, not a completed playable game.
 
 ## Product and technical baseline
 - Android first; keep architecture iOS-compatible.
@@ -22,9 +22,10 @@ The Unity starter source tree is committed to `main`. GitHub Actions source expa
 - `Assets/Scripts/World` — region metadata and scene-loading foundation.
 - `Assets/Scripts/Backend` — Supabase Auth, profile, wallet, career and race reward client.
 - `Assets/Editor` — starter scene generators and Android build menu.
-- `Database/Migrations` — versioned Supabase schema, security, Auth bootstrap, server grants and wallet/race lifecycle primitives.
-- `supabase/functions/settle-race-result` — JWT-protected race reward claim endpoint.
-- `Documentation` and `Tests` — architecture, setup, test plan and source validator.
+- `Database/Migrations` — Supabase schema, security, Auth bootstrap, wallet and race lifecycle.
+- `supabase/functions` — JWT-protected reward claim and secret-protected race control functions.
+- `Server/RaceServer` — .NET 8 race-server control HTTP client.
+- `Documentation` and `Tests` — architecture, setup, acceptance tests and validators.
 
 ## Unity setup
 1. Install Unity Hub and a Unity 6 LTS Editor with the 3D URP template.
@@ -36,23 +37,21 @@ The Unity starter source tree is committed to `main`. GitHub Actions source expa
 
 ## Supabase
 Target: `GTWORLD` (`hzawgrvonsqyqjyzzreg`, `eu-west-1`), verified `ACTIVE_HEALTHY`. Seven migrations are applied:
-- `0001_apex_core.sql` — public data model, RLS, restricted client grants and private race-session secrets.
-- `0002_apex_security_and_region_indexes.sql` — private-secret isolation and region indexes.
-- `0003_apex_auth_user_bootstrap.sql` — Auth trigger provisions profile, zeroed wallet and progression; direct client profile insertion is revoked.
-- `0004_apex_service_role_privileges.sql` — trusted server-side access to current and future APEX tables.
-- `0005_apex_wallet_transactions.sql` — atomic, idempotent Credits/Premium Tokens adjustment, executable only by `service_role`.
-- `0006_apex_race_reward_settlement.sql` — adds a bounded, server-owned Credits reward field to race results.
-- `0007_apex_authoritative_race_lifecycle.sql` — service-only start/finalize RPCs for race sessions and validated results.
+- `0001_apex_core.sql` — public data model and RLS.
+- `0002_apex_security_and_region_indexes.sql` — private-secret isolation and indexes.
+- `0003_apex_auth_user_bootstrap.sql` — Auth trigger provisions profile, wallet and progression.
+- `0004_apex_service_role_privileges.sql` — trusted server database grants.
+- `0005_apex_wallet_transactions.sql` — atomic idempotent wallet adjustment.
+- `0006_apex_race_reward_settlement.sql` — server-owned race payout field.
+- `0007_apex_authoritative_race_lifecycle.sql` — server-only race start/finalize RPCs.
 
-The `settle-race-result` Edge Function is deployed and ACTIVE with JWT verification enabled. Unity can call it with only a `race_result_id`. It verifies the caller, result ownership, server validation and finished race session, then uses the stored server-calculated reward and wallet RPC idempotency key.
+The `settle-race-result` function is ACTIVE with JWT verification. The `race-session-control` function is ACTIVE with its own shared-token verification. The database lifecycle and reward path were transaction-tested; rollback removed all test rows. Security Advisor reports no findings.
 
-The database lifecycle was rollback-tested: session start, repeated start, result finalization, repeated identical finalization and wallet reward settlement created one validated result and one ledger credit. All test users, sessions, results and wallet records were removed by rollback. The dedicated authoritative race-server process that calculates the payout and invokes the service-only lifecycle RPCs is not yet implemented; live Unity Auth/PostgREST/Edge Function tests also remain pending.
+**Race server token setup is still required before the control function will execute commands.** In GTWORLD Supabase Edge Function secrets, set `APEX_RACE_SERVER_TOKEN` to a strong random secret (at least 32 characters). Set the exact same value only in the dedicated race-server host environment. Never commit it or include it in Unity. The Edge Function uses the Supabase-managed service-role key internally; the .NET client does not receive that key.
 
-Verified: 11 public tables + 1 private table with RLS on all 12; service_role has backend access; authenticated users cannot write wallet/race-result state or call the server RPCs; Security Advisor reports no findings. Do not apply these migrations to Qulup or ASIX.
+The dedicated race simulation process, Unity runtime tests, APK build and device performance testing are not yet complete. Do not apply these migrations to Qulup or ASIX.
 
-The Unity client may use the publishable key, but must never contain a service-role/secret key, database password, signing key, or server secret. The service-role key belongs only in trusted server-side secrets.
-
-## GitHub and validation
+## GitHub
 Repository: https://github.com/maisuradzee/apex-gt-world
 
-GitHub Actions validates source structure, migration security expectations, Auth bootstrap, server-only wallet and race lifecycle, owner-scoped reads, race reward validation, client request shape, scene preservation, and credential scans. Static checks do not replace Unity Editor compilation, Play Mode physics/input tests, Android device profiling, server-side multiplayer testing, or a production security review.
+CI checks source structure, secret exposure, migration security and server-only operations, type-checks both Deno functions, and builds `Server/RaceServer/ApexGtWorld.RaceServer.csproj`.

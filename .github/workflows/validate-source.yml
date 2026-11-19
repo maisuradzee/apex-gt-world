@@ -12,3 +12,15 @@ jobs:
           python-version: '3.x'
       - name: Validate source structure, package JSON and database security baseline
         run: python3 Tests/validate_source.py
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check Supabase Edge Functions
+        run: |
+          deno check --config supabase/functions/settle-race-result/deno.json supabase/functions/settle-race-result/index.ts
+          deno check --config supabase/functions/race-session-control/deno.json supabase/functions/race-session-control/index.ts
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build dedicated race-server control client
+        run: dotnet build Server/RaceServer/ApexGtWorld.RaceServer.csproj --configuration Release

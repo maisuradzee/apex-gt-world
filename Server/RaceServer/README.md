@@ -1,29 +1,28 @@
 # APEX GT WORLD Race Server Control Client
 
-This is a server-only .NET 8 helper. It is not part of the Unity player build.
+This standalone .NET 8 helper talks to the deployed Supabase `race-session-control` Edge Function. It is server-only and must not be included in the Unity player build.
 
-## Configuration
-Set these environment variables on the dedicated race-server host:
-
+## Required environment variables
+Set these only on the dedicated race-server host:
 - `APEX_RACE_CONTROL_URL=https://hzawgrvonsqyqjyzzreg.supabase.co/functions/v1/race-session-control`
 - `APEX_RACE_SERVER_TOKEN=<strong random secret, at least 32 characters>`
 
-Set the exact same token as an Edge Function secret named `APEX_RACE_SERVER_TOKEN` in the GTWORLD Supabase project. Do not put it in Git, Unity assets, Android/iOS builds, client logs or the player app. Rotate it in both places if it is exposed.
+In the GTWORLD Supabase Dashboard, add the same token as an Edge Function secret named `APEX_RACE_SERVER_TOKEN`. The function will return 503 until it is configured. Keep the value out of Git, issue logs, Unity assets, Android/iOS builds and player clients. Rotate it in both environments if exposed.
 
-The Supabase Edge Function uses its server-managed `SUPABASE_SERVICE_ROLE_KEY` internally. Do not copy that key into the race server if the Edge Function is the only database control boundary.
+The Supabase-managed `SUPABASE_SERVICE_ROLE_KEY` stays inside the Edge Function. The race server does not receive or store it.
 
-## Lifecycle
-1. `CreateSessionAsync(regionId, discipline)` creates a `created` session.
-2. `StartSessionAsync(sessionId)` calls the service-only start RPC; repeat calls are safe while the session is already running.
-3. The authoritative simulation runs on the dedicated server.
-4. `FinalizeSessionAsync(sessionId, results)` submits the server-calculated player placement, finish time, score and Credits reward in one atomic database operation.
-5. The player claims their own reward using the separate JWT-protected `settle-race-result` function.
+## API lifecycle
+1. `CreateSessionAsync(regionId, discipline)` creates a session in `created`.
+2. `StartSessionAsync(sessionId)` changes it to `running`; repeated start while running is safe.
+3. Dedicated authoritative simulation runs on the race server.
+4. `FinalizeSessionAsync(sessionId, results)` submits validated placements, finish times, scores and server-calculated Credits payouts atomically.
+5. The player separately claims their own result through the JWT-protected `settle-race-result` function.
 
-The Edge Function accepts only the operations and fields required for each step. The SQL RPC performs final validation and is restricted to `service_role`.
+The SQL RPC validates the result set and ensures identical retries do not duplicate or overwrite results.
 
 ## Build
 ```bash
-dotnet build Server/RaceServer/ApexGTWorld.RaceServer.csproj
+dotnet build Server/RaceServer/ApexGtWorld.RaceServer.csproj
 ```
 
-This helper supplies the backend control client; it is not yet the game simulation, physics loop, player replication, anti-cheat or region server.
+This is the control-plane client only. It does not yet implement simulation ticks, physics, replication, participant lifecycle, result calculation or anti-cheat.

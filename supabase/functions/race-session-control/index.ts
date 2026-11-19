@@ -32,6 +32,14 @@ function hasOnlyKeys(body: Record<string, unknown>, allowed: string[]): boolean 
   return Object.keys(body).every((key) => allowed.includes(key));
 }
 
+const allowedDisciplines = new Set<string>([
+  "circuit",
+  "time_attack",
+  "drift",
+  "endurance",
+  "motorcycle",
+]);
+
 Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204 });
@@ -80,7 +88,7 @@ Deno.serve(async (request: Request) => {
       body.region_id.length < 1 ||
       body.region_id.length > 80 ||
       typeof body.discipline !== "string" ||
-      !["circuit", "time_attack", "drift", "endurance", "motorcycle"].includes(body.discipline)
+      !allowedDisciplines.has(body.discipline)
     ) {
       return jsonResponse(400, { error: "Create requires a valid region_id and discipline" });
     }
