@@ -43,7 +43,7 @@ namespace ApexGTWorld.UI
                 StartCoroutine(client.SignInWithPassword(email, password, (session, error) =>
                     status = error ?? ("Signed in: " + (session.user != null ? session.user.email : "user"))));
             if (GUILayout.Button("SIGN UP", GUILayout.Height(38)))
-                StartCoroutine(client.SignUpWithPassword(email, password, (session, error) =>
+                StartCoroutine(client.SignUpWithPassword(email, password, displayName, (session, error) =>
                     status = error ?? (session != null && session.access_token != null ? "Account created and signed in" : "Account created; check email confirmation")));
             GUILayout.EndHorizontal();
             GUILayout.Space(6);

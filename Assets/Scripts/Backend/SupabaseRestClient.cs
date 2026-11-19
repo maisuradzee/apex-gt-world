@@ -35,9 +35,20 @@ namespace ApexGTWorld.Backend
                 });
         }
 
-        public IEnumerator SignUpWithPassword(string email, string password, Action<SupabaseAuthSession, string> completed)
+        public IEnumerator SignUpWithPassword(string email, string password, string displayName, Action<SupabaseAuthSession, string> completed)
         {
-            var body = JsonUtility.ToJson(new SupabaseAuthCredentials { email = email, password = password });
+            if (string.IsNullOrWhiteSpace(displayName) || displayName.Trim().Length < 3 || displayName.Trim().Length > 24)
+            {
+                completed?.Invoke(null, "Display name must contain 3–24 characters.");
+                yield break;
+            }
+
+            var body = JsonUtility.ToJson(new SupabaseSignUpRequest
+            {
+                email = email,
+                password = password,
+                data = new SupabaseSignUpMetadata { display_name = displayName.Trim() }
+            });
             yield return Send("/auth/v1/signup", UnityWebRequest.kHttpVerbPOST, body, false, (json, error) =>
             {
                 if (!string.IsNullOrEmpty(error)) { completed?.Invoke(null, error); return; }
@@ -106,7 +117,7 @@ namespace ApexGTWorld.Backend
         {
             if (!IsSignedIn || CurrentSession.user == null)
             {
-                completed?.Invoke(null, "Sign in before creating a profile.");
+                completed?.Invoke(null, "Sign in before updating your profile.");
                 yield break;
             }
 
@@ -116,22 +127,24 @@ namespace ApexGTWorld.Backend
                 yield break;
             }
 
-            var body = JsonUtility.ToJson(new ApexProfileUpsert
-            {
-                user_id = CurrentSession.user.id,
-                display_name = displayName.Trim()
-            });
+            string userId = UnityWebRequest.EscapeURL(CurrentSession.user.id);
+            var body = JsonUtility.ToJson(new ApexProfileUpdate { display_name = displayName.Trim() });
 
-            yield return Send("/rest/v1/apex_profiles?on_conflict=user_id", "POST", body, true, (json, error) =>
+            yield return Send("/rest/v1/apex_profiles?user_id=eq." + userId, "PATCH", body, true, (json, error) =>
             {
                 if (!string.IsNullOrEmpty(error)) { completed?.Invoke(null, error); return; }
                 try
                 {
                     var result = JsonUtility.FromJson<ApexProfileArray>("{\"items\":" + json + "}");
-                    completed?.Invoke(result != null && result.items != null && result.items.Length > 0 ? result.items[0] : null, null);
+                    if (result == null || result.items == null || result.items.Length == 0)
+                    {
+                        completed?.Invoke(null, "Profile row was not found for the signed-in user.");
+                        return;
+                    }
+                    completed?.Invoke(result.items[0], null);
                 }
                 catch (Exception ex) { completed?.Invoke(null, "Profile parsing failed: " + ex.Message); }
-            }, "resolution=merge-duplicates,return=representation");
+            }, "return=representation");
         }
 
         public IEnumerator FetchRegions(Action<ApexRegion[], string> completed)

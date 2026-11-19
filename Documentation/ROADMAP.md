@@ -9,6 +9,8 @@
 - [x] Migrations 0001 and 0002 applied and recorded.
 - [x] Security Advisor clean; column privileges and private-secret isolation verified.
 - [x] GitHub source tree committed to `main`; CI source validation passes.
+- [x] Auth bootstrap migration and matching Unity client flow prepared.
+- [ ] Apply migration 0003 and validate Auth-trigger provisioning.
 - [ ] Create/open the Unity 6 LTS URP project and pin exact Editor/package versions.
 
 ## Gate 1 — Offline vehicle vertical slice

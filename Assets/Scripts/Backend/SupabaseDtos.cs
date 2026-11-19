@@ -10,6 +10,20 @@ namespace ApexGTWorld.Backend
     }
 
     [Serializable]
+    public sealed class SupabaseSignUpRequest
+    {
+        public string email;
+        public string password;
+        public SupabaseSignUpMetadata data;
+    }
+
+    [Serializable]
+    public sealed class SupabaseSignUpMetadata
+    {
+        public string display_name;
+    }
+
+    [Serializable]
     public sealed class SupabaseRefreshRequest
     {
         public string refresh_token;
@@ -42,9 +56,8 @@ namespace ApexGTWorld.Backend
     }
 
     [Serializable]
-    internal sealed class ApexProfileUpsert
+    internal sealed class ApexProfileUpdate
     {
-        public string user_id;
         public string display_name;
     }
 
