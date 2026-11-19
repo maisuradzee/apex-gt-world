@@ -107,7 +107,7 @@ internal static class RaceSessionRuntimeTests
             () => multiLap.RecordCheckpoint(first, "sector_1", start.AddMilliseconds(6)),
             "next lap must begin at its first checkpoint");
         multiLap.RecordCheckpoint(first, "start_finish", start.AddMilliseconds(7));
-        var lapTwoStanding = default(RaceStanding);
+        RaceStanding? lapTwoStanding = null;
         multiLap.RecordCheckpoint(first, "sector_1", start.AddMilliseconds(12));
         var multiLapResult = multiLap.BuildFinalResults(standing =>
         {
