@@ -33,6 +33,15 @@ namespace ApexGTWorld.Offline
         internal bool CanPass(int checkpointIndex) =>
             Session != null && !IsFinished && checkpointIndex == NextCheckpointIndex;
 
+        internal void DetachSession()
+        {
+            Session = null;
+            IsFinished = false;
+            CompletedLaps = 0;
+            NextCheckpointIndex = 0;
+            FinishTimeSeconds = 0f;
+        }
+
         internal void Advance(int checkpointCount)
         {
             NextCheckpointIndex++;
