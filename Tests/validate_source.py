@@ -157,7 +157,7 @@ if "EditorBuildSettings.scenes = new[]" in scene_source:
 
 # Offline-first gameplay must not require Supabase Auth or network access to boot.
 offline_profile = (ROOT / "Assets/Scripts/Offline/OfflinePlayerProfile.cs").read_text(encoding="utf-8")
-for fragment in ["schemaVersion", "credits", "careerXp", "selectedVehicleId", "ownedVehicleIds", "unlockedRegionIds", "completedEventIds"]:
+for fragment in ["schemaVersion", "credits", "careerXp", "selectedVehicleId", "ownedVehicleIds", "unlockedRegionIds", "completedEventIds", "engineUpgradeLevel", "handlingUpgradeLevel", "brakeUpgradeLevel"]:
     if fragment not in offline_profile:
         raise SystemExit("Offline player profile is missing: " + fragment)
 
@@ -174,6 +174,10 @@ if "UnityWebRequest" in offline_manager or "Supabase" in offline_manager:
     raise SystemExit("Offline gameplay manager must not depend on Supabase or network requests")
 if "AddOfflineGameManager();" not in scene_source or "AddSupabaseDebugConsole();" in scene_source:
     raise SystemExit("Generated starter scenes must launch with local offline profile support, not the Supabase debug console")
+
+offline_vehicle = (ROOT / "Assets/Scripts/VehiclePhysics/VehicleController.cs").read_text(encoding="utf-8")
+if "ApplyGarageUpgrades" not in offline_vehicle:
+    raise SystemExit("Vehicle controller must apply saved local garage upgrades")
 
 offline_flow = (ROOT / "Assets/Scripts/Offline/OfflineGameFlow.cs").read_text(encoding="utf-8")
 for fragment in ["START FREE DRIVE", "START CAREER RACE", "GARAGE", "PauseGame", "ResumeGame", "SetGameplayEnabled", "Time.timeScale = 0f"]:
