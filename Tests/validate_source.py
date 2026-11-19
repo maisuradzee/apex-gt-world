@@ -367,6 +367,39 @@ for fragment in [
     if fragment not in race_tests:
         raise SystemExit("Missing race-server contract test: " + fragment)
 
+# The authoritative race runtime validates server-driven checkpoints and creates deterministic standings.
+race_runtime = (ROOT / "Server/RaceServer/RaceSessionRuntime.cs").read_text(encoding="utf-8")
+for fragment in [
+    "MaximumEntrants = 64",
+    "RecordCheckpoint",
+    "ValidateServerTimestamp",
+    "MarkDidNotFinish",
+    "Disqualify",
+    "BuildFinalResults",
+    "MidpointRounding.AwayFromZero",
+    "_finalResults",
+    "Server reward calculator returned an amount outside the allowed range",
+]:
+    if fragment not in race_runtime:
+        raise SystemExit("Missing authoritative race-runtime invariant: " + fragment)
+if "UnityEngine" in race_runtime or "SUPABASE_SERVICE_ROLE_KEY" in race_runtime:
+    raise SystemExit("Race runtime must remain an engine-independent server-side domain component")
+
+race_runtime_tests = (ROOT / "Server/RaceServer.Tests/RaceSessionRuntimeTests.cs").read_text(encoding="utf-8")
+for fragment in [
+    "out-of-order checkpoint",
+    "checkpoint timestamp before race start",
+    "MarkDidNotFinish",
+    "disqualification",
+    "zero-duration finish rejected without partial progress mutation",
+    "65th entrant rejected",
+    "cached immutable collection",
+]:
+    if fragment not in race_runtime_tests:
+        raise SystemExit("Missing race-runtime validation test: " + fragment)
+if "RaceSessionRuntimeTests.Run();" not in (ROOT / "Server/RaceServer.Tests/Program.cs").read_text(encoding="utf-8"):
+    raise SystemExit("Race-session runtime tests are not invoked by the CI test runner")
+
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github", ROOT / "Server", ROOT / "supabase"):
     for path in base.rglob("*"):
