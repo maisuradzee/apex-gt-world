@@ -55,7 +55,7 @@ The project is moving to an offline-first playable milestone. The generated car 
 6. Open Garage and purchase Engine, Handling or Brakes upgrades (250 Credits each). Upgrades change the starter car's tuning and persist locally.
 7. Stop Play Mode and launch again; the local profile and upgrades should remain.
 
-Editor controls: WASD / arrow keys to steer and accelerate, Space to brake, Left Shift for handbrake, V to switch camera, Escape to pause. Android uses the generated touch controls.
+Editor controls: WASD / arrow keys to steer and accelerate, Space to brake, Left Shift for handbrake, V to switch camera, Escape to pause. Android uses the generated touch controls. See `Documentation/OFFLINE_PLAYTEST_CHECKLIST.md` for the complete smoke-test sequence and known limitations.
 
 ## Optional online backend (later phase)
 Target: `GTWORLD` (`hzawgrvonsqyqjyzzreg`, `eu-west-1`), verified `ACTIVE_HEALTHY`. Ten migrations are applied:
