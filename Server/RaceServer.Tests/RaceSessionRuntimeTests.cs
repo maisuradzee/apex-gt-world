@@ -76,6 +76,17 @@ internal static class RaceSessionRuntimeTests
         var validAfterFailure = invalidPayout.BuildFinalResults(_ => 0);
         Check(validAfterFailure.Count == 1, "valid payout can be calculated after failed payout policy");
 
+        var atomicCheckpoint = CreateRuntime(Guid.Parse("10000000-0000-4000-8000-000000000006"));
+        atomicCheckpoint.AddEntrant(first);
+        atomicCheckpoint.Start(start);
+        atomicCheckpoint.RecordCheckpoint(first, "cp-1", start);
+        Expect<InvalidOperationException>(
+            () => atomicCheckpoint.RecordCheckpoint(first, "cp-2", start),
+            "zero-duration finish rejected without partial progress mutation");
+        atomicCheckpoint.RecordCheckpoint(first, "cp-2", start.AddMilliseconds(1));
+        Check(atomicCheckpoint.BuildFinalResults(_ => 0).Single().FinishTimeMs == 1,
+            "checkpoint can be retried after a rejected finish event");
+
         var capacity = CreateRuntime(Guid.Parse("10000000-0000-4000-8000-000000000004"));
         for (var i = 1; i <= 64; i++)
             capacity.AddEntrant(Guid.Parse($"30000000-0000-4000-8000-{i:000000000000}"));
