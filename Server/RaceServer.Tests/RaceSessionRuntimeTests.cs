@@ -47,6 +47,11 @@ internal static class RaceSessionRuntimeTests
         var results = runtime.BuildFinalResults(standing =>
         {
             rewardCalls++;
+            if (standing.Status == RaceEntrantStatus.DidNotFinish)
+            {
+                Check(standing.TerminalReasonCode == "disconnect_timeout", "DNF reason is retained for server reporting");
+                return 0L;
+            }
             return standing.Status == RaceEntrantStatus.Finished
                 ? (standing.Placement == 1 ? 1000L : 500L)
                 : 0L;
@@ -102,7 +107,11 @@ internal static class RaceSessionRuntimeTests
             () => disqualification.Disqualify(first, "invalid reason!", start.AddMilliseconds(1)),
             "reason code format");
         disqualification.Disqualify(first, "anti_cheat_flag", start.AddMilliseconds(2));
-        var dqResult = disqualification.BuildFinalResults(_ => 0).Single();
+        var dqResult = disqualification.BuildFinalResults(standing =>
+        {
+            Check(standing.TerminalReasonCode == "anti_cheat_flag", "disqualification reason is retained for server reporting");
+            return 0;
+        }).Single();
         Check(dqResult.FinishTimeMs is null && dqResult.Placement == 1,
             "disqualified player receives a final non-finish result");
 
