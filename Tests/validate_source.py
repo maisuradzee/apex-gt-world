@@ -13,6 +13,12 @@ REQUIRED = [
     "Assets/Scripts/Offline/OfflinePlayerProfile.cs",
     "Assets/Scripts/Offline/OfflineSaveStore.cs",
     "Assets/Scripts/Offline/OfflineGameManager.cs",
+    "Assets/Scripts/Offline/OfflineGameFlow.cs",
+    "Assets/Scripts/Offline/OfflineRaceParticipant.cs",
+    "Assets/Scripts/Offline/OfflineRaceCheckpoint.cs",
+    "Assets/Scripts/Offline/OfflineRaceSession.cs",
+    "Assets/Scripts/Offline/OfflineAiDriver.cs",
+    "Assets/Scripts/Offline/OfflineRaceCourse.cs",
     "Database/Migrations/0001_apex_core.sql",
     "Database/Migrations/0002_apex_security_and_region_indexes.sql",
     "Database/Migrations/0003_apex_auth_user_bootstrap.sql",
@@ -168,6 +174,33 @@ if "UnityWebRequest" in offline_manager or "Supabase" in offline_manager:
     raise SystemExit("Offline gameplay manager must not depend on Supabase or network requests")
 if "AddOfflineGameManager();" not in scene_source or "AddSupabaseDebugConsole();" in scene_source:
     raise SystemExit("Generated starter scenes must launch with local offline profile support, not the Supabase debug console")
+
+offline_flow = (ROOT / "Assets/Scripts/Offline/OfflineGameFlow.cs").read_text(encoding="utf-8")
+for fragment in ["START FREE DRIVE", "START CAREER RACE", "GARAGE", "PauseGame", "ResumeGame", "SetGameplayEnabled", "Time.timeScale = 0f"]:
+    if fragment not in offline_flow:
+        raise SystemExit("Offline game flow is missing: " + fragment)
+
+race_session = (ROOT / "Assets/Scripts/Offline/OfflineRaceSession.cs").read_text(encoding="utf-8")
+for fragment in ["TryRecordCheckpoint", "checkpointCount", "CompletedLaps", "rewardCredits", "playerRewardApplied"]:
+    if fragment not in race_session:
+        raise SystemExit("Offline race session is missing: " + fragment)
+
+race_course = (ROOT / "Assets/Scripts/Offline/OfflineRaceCourse.cs").read_text(encoding="utf-8")
+for fragment in ["Offline Checkpoint ", "Offline AI Driver ", "BeginRace", "StopRace", "ContinuousDynamic"]:
+    if fragment not in race_course:
+        raise SystemExit("Offline race course is missing: " + fragment)
+
+for relative, fragments in [
+    ("Assets/Scripts/Offline/OfflineRaceCheckpoint.cs", ["OnTriggerEnter", "TryPassCheckpoint"]),
+    ("Assets/Scripts/Offline/OfflineRaceParticipant.cs", ["NextCheckpointIndex", "CompletedLaps", "TryPassCheckpoint"]),
+    ("Assets/Scripts/Offline/OfflineAiDriver.cs", ["BeginDriving", "MovePosition", "MoveRotation"]),
+]:
+    source = (ROOT / relative).read_text(encoding="utf-8")
+    for fragment in fragments:
+        if fragment not in source:
+            raise SystemExit(relative + " is missing: " + fragment)
+if "AddOfflineGameFlow();" not in scene_source:
+    raise SystemExit("Generated car scene must include offline main menu and local race course")
 
 # Prevent cross-account debug flows from retaining an unrelated in-memory session.
 if "Sign out before switching accounts." not in client_source:
