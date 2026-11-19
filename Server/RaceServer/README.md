@@ -20,9 +20,27 @@ The Supabase-managed `SUPABASE_SERVICE_ROLE_KEY` stays inside the Edge Function.
 
 The create RPC and finalize RPC are idempotent. Create uses a private request-key table; finalize accepts identical retries and rejects a changed result set.
 
+## Authoritative race-session runtime
+
+`RaceSessionRuntime.cs` is an engine-independent server-side state machine for a single race instance. It:
+- accepts 1–64 registered entrants before the race starts;
+- enforces a single ordered checkpoint sequence per course;
+- uses server-supplied monotonic timestamps and derives finish time on the server;
+- records Finished, DNF and disqualified entrant states;
+- creates deterministic placements (finishers by finish time, then non-finishers by progress and stable tie-break);
+- requires a trusted server reward-calculator delegate and caches final submissions so retries cannot silently recalculate payouts.
+
+The host must call checkpoint methods only after authoritative server-side position/trigger validation. The runtime does **not** yet simulate vehicle physics, validate movement/telemetry, replicate players, manage reconnects or prove anti-cheat integrity. Reward amounts remain the responsibility of a server-owned reward schedule; no economy rates are hard-coded here.
+
 ## Build
 ```bash
 dotnet build Server/RaceServer/ApexGtWorld.RaceServer.csproj
 ```
 
 The GitHub Actions workflow builds the client and runs contract tests with a fake HTTP handler. This is still the control-plane client only; it does not implement simulation ticks, physics, replication, participant lifecycle, result calculation or anti-cheat.
+
+
+## Tests
+```bash
+dotnet run --project Server/RaceServer.Tests/ApexGTWorld.RaceServer.Tests.csproj
+```
