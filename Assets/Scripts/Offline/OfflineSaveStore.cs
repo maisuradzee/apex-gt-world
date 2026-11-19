@@ -35,7 +35,15 @@ namespace ApexGTWorld.Offline
                 if (File.Exists(backup) && TryRead(backup, out profile, out string backupError))
                 {
                     message = "Recovered the previous local save.";
-                    TrySave(profile, out _);
+                    if (File.Exists(primary))
+                    {
+                        string corrupt = primary + ".corrupt";
+                        if (File.Exists(corrupt)) File.Delete(corrupt);
+                        File.Move(primary, corrupt);
+                    }
+
+                    if (!TrySave(profile, out string recoveryError))
+                        message += " Recovery loaded, but restoring the main save failed: " + recoveryError;
                     return true;
                 }
 
