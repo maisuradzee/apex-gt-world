@@ -25,7 +25,8 @@ The Unity starter source tree is committed to `main`. GitHub Actions validates s
 - `Database/Migrations` — Supabase schema, security, Auth bootstrap, wallet and race lifecycle.
 - `supabase/functions` — JWT-protected reward claim and secret-protected race control functions.
 - `Server/RaceServer` — .NET 8 race-session runtime, lifecycle coordinator and protected Supabase control client.
-- `Server/RaceServer.Tests` — HTTP contract and race-session domain tests.
+- `Server/RaceServer.Tests` — HTTP contract, race-session domain and coordinator tests.
+- `Server/RaceServer/Windows` — secure Windows environment setup script for the dedicated race-server host.
 - `Documentation` and `Tests` — architecture, setup, acceptance tests and validators.
 
 ## Unity setup
