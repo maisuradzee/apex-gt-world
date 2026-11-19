@@ -3,7 +3,7 @@
 ## Gate 0 — Source and backend foundation
 - [x] Product and architecture baseline; Unity starter source and Android build menu.
 - [x] Car/motorcycle prototype and region/scene foundation.
-- [x] Nine Supabase migrations applied and security reviewed.
+- [x] Ten Supabase migrations applied and security reviewed.
 - [x] Auth, wallet and race lifecycle transaction tests passed with rollback.
 - [x] Player reward claim Edge Function deployed with JWT verification.
 - [x] Race control Edge Function deployed with shared-token authentication.

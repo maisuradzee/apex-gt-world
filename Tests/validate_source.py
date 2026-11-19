@@ -19,6 +19,7 @@ REQUIRED = [
     "Database/Migrations/0007_apex_authoritative_race_lifecycle.sql",
     "Database/Migrations/0008_apex_race_result_integer_validation.sql",
     "Database/Migrations/0009_apex_idempotent_race_session_creation.sql",
+    "Database/Migrations/0010_apex_private_request_policy.sql",
     "supabase/functions/settle-race-result/index.ts",
     "supabase/functions/settle-race-result/deno.json",
 ]
@@ -336,6 +337,20 @@ if '"request_key"' not in control_for_create or '"apex_server_create_race_sessio
 race_client_for_create = (ROOT / "Server/RaceServer/RaceControlClient.cs").read_text(encoding="utf-8")
 if "Guid requestKey" not in race_client_for_create or 'JsonPropertyName("request_key")' not in race_client_for_create:
     raise SystemExit("Race-server create API must send a stable idempotency request key")
+
+# Private race request mapping is explicitly denied to ordinary roles under RLS.
+private_policy_sql = (ROOT / "Database/Migrations/0010_apex_private_request_policy.sql").read_text(encoding="utf-8").lower()
+for fragment in [
+    "create policy apex_race_session_requests_deny_clients",
+    "on apex_private.apex_race_session_requests",
+    "for all",
+    "to public",
+    "using (false)",
+    "with check (false)",
+    "revoke all on table apex_private.apex_race_session_requests",
+]:
+    if fragment not in private_policy_sql:
+        raise SystemExit("Missing explicit private race-request deny policy: " + fragment)
 
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github", ROOT / "Server", ROOT / "supabase"):

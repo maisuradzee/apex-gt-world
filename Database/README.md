@@ -12,8 +12,9 @@ The migrations under `Migrations/` target the dedicated APEX GT WORLD Supabase p
 7. `0007_apex_authoritative_race_lifecycle.sql` — service-only race start/finalize RPCs.
 8. `0008_apex_race_result_integer_validation.sql` — unique placements and whole-number result validation.
 9. `0009_apex_idempotent_race_session_creation.sql` — private request-key mapping and retry-safe session creation.
+10. `0010_apex_private_request_policy.sql` — explicit deny policy for the private request mapping.
 
-All nine migrations are applied to `GTWORLD`.
+All ten migrations are applied to `GTWORLD`.
 
 ## Security model
 - RLS enabled on all 11 public APEX tables and the private session-secret table.
@@ -24,6 +25,7 @@ All nine migrations are applied to `GTWORLD`.
 - Race result payout is bounded 0..1,000,000,000; client roles cannot write race results.
 - `apex_server_create_race_session`, `apex_server_start_race_session` and `apex_server_finalize_race_session` are executable only by `service_role`.
 - Session creation stores a client-generated request UUID in the private schema; repeated requests with the same region/discipline return the original session with `applied=false`, while reusing that key with changed parameters is rejected.
+- The private request-key table has RLS enabled, an explicit deny policy for the public role, and no client grants; only trusted service/function-owner execution can use it.
 - Finalize validates the complete result set, requires a unique placement and whole-number score/time/payout, writes `validated=true`, sets session `finished` atomically, accepts identical retries and rejects conflicting retries.
 
 ## Verified

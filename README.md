@@ -36,7 +36,7 @@ The Unity starter source tree is committed to `main`. GitHub Actions validates s
 6. Run the test plan before using `APEX GT WORLD > Build > Build Android APK`.
 
 ## Supabase
-Target: `GTWORLD` (`hzawgrvonsqyqjyzzreg`, `eu-west-1`), verified `ACTIVE_HEALTHY`. Nine migrations are applied:
+Target: `GTWORLD` (`hzawgrvonsqyqjyzzreg`, `eu-west-1`), verified `ACTIVE_HEALTHY`. Ten migrations are applied:
 - `0001_apex_core.sql` — public data model and RLS.
 - `0002_apex_security_and_region_indexes.sql` — private-secret isolation and indexes.
 - `0003_apex_auth_user_bootstrap.sql` — Auth trigger provisions profile, wallet and progression.
@@ -46,6 +46,7 @@ Target: `GTWORLD` (`hzawgrvonsqyqjyzzreg`, `eu-west-1`), verified `ACTIVE_HEALTH
 - `0007_apex_authoritative_race_lifecycle.sql` — server-only race start/finalize RPCs.
 - `0008_apex_race_result_integer_validation.sql` — unique placements and integer-only race result validation.
 - `0009_apex_idempotent_race_session_creation.sql` — private create-request keys and idempotent race session creation.
+- `0010_apex_private_request_policy.sql` — explicit deny RLS policy for the private request-key table.
 
 The `settle-race-result` function is ACTIVE with JWT verification. The `race-session-control` function is ACTIVE with its own shared-token verification. The database lifecycle and reward path were transaction-tested; rollback removed all test rows. Security Advisor reports no findings.
 
