@@ -20,6 +20,10 @@ namespace ApexGTWorld.VehiclePhysics
 
         private Rigidbody body;
         private VehicleInput input;
+        private float baseMotorTorque;
+        private float baseServiceBrakeTorque;
+        private float baseHandbrakeTorque;
+        private float baseMaxSteerAngle;
 
         public float SpeedKph => body == null ? 0f : body.velocity.magnitude * 3.6f;
         public Rigidbody Body => body;
@@ -28,6 +32,10 @@ namespace ApexGTWorld.VehiclePhysics
         {
             body = GetComponent<Rigidbody>();
             body.centerOfMass += centerOfMassOffset;
+            baseMotorTorque = motorTorque;
+            baseServiceBrakeTorque = serviceBrakeTorque;
+            baseHandbrakeTorque = handbrakeTorque;
+            baseMaxSteerAngle = maxSteerAngle;
         }
 
         private void Start() => ValidateWheelConfiguration();
@@ -42,6 +50,17 @@ namespace ApexGTWorld.VehiclePhysics
         }
 
         public void SetInput(VehicleInput nextInput) => input = nextInput.Clamped();
+
+        public void ApplyGarageUpgrades(int engineLevel, int handlingLevel, int brakeLevel)
+        {
+            engineLevel = Mathf.Clamp(engineLevel, 0, 5);
+            handlingLevel = Mathf.Clamp(handlingLevel, 0, 5);
+            brakeLevel = Mathf.Clamp(brakeLevel, 0, 5);
+            motorTorque = baseMotorTorque * (1f + engineLevel * 0.09f);
+            maxSteerAngle = Mathf.Clamp(baseMaxSteerAngle + handlingLevel * 1.5f, 5f, 45f);
+            serviceBrakeTorque = baseServiceBrakeTorque * (1f + brakeLevel * 0.10f);
+            handbrakeTorque = baseHandbrakeTorque * (1f + brakeLevel * 0.08f);
+        }
 
         private void FixedUpdate()
         {
