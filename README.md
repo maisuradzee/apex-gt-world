@@ -3,7 +3,7 @@
 Android-first, mobile-optimized open-world motorsport and roleplay game foundation.
 
 ## Current project state
-The initial Unity source tree is committed to `main`. The bootstrap GitHub Actions run successfully assembled the source package, extracted it, and ran `Tests/validate_source.py`. This is a **starter source foundation**, not a completed playable game.
+The Unity starter source tree is committed to `main`. GitHub Actions successfully expanded the archive into the repository and the static source validator passes. This is a **starter source foundation**, not a completed playable game.
 
 ## Product and technical baseline
 - Android first; keep architecture iOS-compatible.
@@ -22,7 +22,7 @@ The initial Unity source tree is committed to `main`. The bootstrap GitHub Actio
 - `Assets/Scripts/World` — region metadata and scene-loading foundation.
 - `Assets/Scripts/Backend` — Supabase client/configuration and diagnostics foundation.
 - `Assets/Editor` — starter scene generators and Android build menu.
-- `Database/Migrations` — initial Supabase schema migration.
+- `Database/Migrations` — versioned Supabase schema and security migrations.
 - `Documentation` and `Tests` — architecture, setup, test plan and source validator.
 
 ## Unity setup
@@ -33,13 +33,15 @@ The initial Unity source tree is committed to `main`. The bootstrap GitHub Actio
 5. Run the test plan before using `APEX GT WORLD > Build > Build Android APK`.
 
 ## Supabase
-Target project: `hzawgrvonsqyqjyzzreg` (`GTWORLD`, `eu-west-1`). It was verified active and healthy, with no public tables or migrations at the time of inspection. `Database/Migrations/0001_apex_core.sql` is staged in source but has **not** been applied.
+Target project: `hzawgrvonsqyqjyzzreg` (`GTWORLD`, `eu-west-1`), verified `ACTIVE_HEALTHY`. Both migrations have been applied:
+- `0001_apex_core.sql` — 11 public tables, RLS, restricted profile grants and private race-session secrets.
+- `0002_apex_security_and_region_indexes.sql` — explicit client deny policy for private secrets and region foreign-key indexes.
 
-Apply it only to the dedicated APEX project, never to Qulup or ASIX. The Unity client may use the publishable key, but must never contain a service-role/secret key, database password, signing key, or server secret. Authentication and RLS ownership checks are still required.
+The database currently contains 11 public tables plus one private table; four region seed rows are present. Security Advisor reports no findings. Live Unity Auth/PostgREST smoke tests are still pending. Do not apply these migrations to Qulup or ASIX.
+
+The Unity client may use the publishable key, but must never contain a service-role/secret key, database password, signing key, or server secret.
 
 ## GitHub and validation
 Repository: https://github.com/maisuradzee/apex-gt-world
 
-The source tree is committed on `main`. The first extraction workflow successfully assembled the compressed package and passed the static source validator. `validate-source.yml` runs source checks on future pushes and pull requests.
-
-Static checks do not replace Unity Editor compilation, Play Mode physics/input tests, Android device profiling, server-side multiplayer testing, or a production security review. None of those full runtime validations is claimed yet.
+The source tree is committed on `main`. GitHub Actions successfully expanded the compressed source package and the source validation workflow passes. Static checks do not replace Unity Editor compilation, Play Mode physics/input tests, Android device profiling, server-side multiplayer testing, or a production security review.

@@ -1,36 +1,46 @@
 # Supabase Integration — APEX GT WORLD
 
-## Client configuration
-The Unity client is configured for the project URL/ref supplied by the project owner. Its `sb_publishable_...` key is a client-safe publishable key. The key is included in `SupabaseProjectSettings.cs` because it is intended for use in mobile clients. It does not grant elevated database privileges by itself.
+## Connected project
+- Project: `GTWORLD`
+- Ref: `hzawgrvonsqyqjyzzreg`
+- URL: `https://hzawgrvonsqyqjyzzreg.supabase.co`
+- Region: `eu-west-1`
+- Status at last check: `ACTIVE_HEALTHY`
 
-Never add `sb_secret_...`, `service_role`, database passwords, or server shared secrets to Unity assets or source control.
+The Unity client uses the supplied `sb_publishable_...` key. Publishable keys are designed for client use when RLS and least-privilege grants are enforced. Never add `sb_secret_...`, `service_role`, database passwords, or server shared secrets to Unity assets or source control.
+
+## Applied database migrations
+1. `0001_apex_core.sql` — 11 public tables, RLS, explicit grants, and `apex_private.apex_race_session_secrets`.
+2. `0002_apex_security_and_region_indexes.sql` — explicit deny policy on private session secrets and region foreign-key indexes.
+
+Verified state:
+- 11 public APEX tables and one private table exist.
+- RLS is enabled on all 12 tables.
+- Four region seed records exist.
+- `authenticated` cannot use the `apex_private` schema or read private session secrets.
+- `authenticated` cannot update profile `reputation`; it can update only `display_name`.
+- `service_role` can access private session secrets.
+- Supabase Security Advisor returned no findings after migration 0002.
+- Performance Advisor reports only currently unused indexes; there is no real gameplay workload yet.
 
 ## Unity integration
-`SupabaseRestClient.cs` uses UnityWebRequest and the Supabase Auth/PostgREST HTTP endpoints. It supports:
-- Email/password sign-in
-- Email/password sign-up
-- Refresh token while app session is in memory
-- Sign-out
-- Fetch own APEX profile
-- Upsert own APEX profile
+`SupabaseRestClient.cs` uses UnityWebRequest and Supabase Auth/PostgREST HTTP endpoints. It currently provides:
+- Email/password sign-in and sign-up
+- In-memory refresh-token flow and sign-out
+- Fetch own profile and save own display name
 - Fetch configured world regions
-- A temporary development console is added to the generated car and motorcycle scenes for on-device smoke testing.
+- A development-only Supabase debug panel in generated test scenes
 
-This is a small HTTP adapter, not the full official Supabase SDK. The SDK's C# project documents .NET Standard 2.1 support including Unity, but this starter avoids an extra NuGet dependency until the Unity package workflow is pinned and validated.
+The profile save request sends only `user_id` and `display_name`. `home_region` and `reputation` are server-controlled and cannot be changed by the client. The client does not write wallet, inventory, property, business, or race-result records.
 
-## Required dashboard setup
-1. In Supabase Dashboard, confirm the project ref is `hzawgrvonsqyqjyzzreg` and its URL is `https://hzawgrvonsqyqjyzzreg.supabase.co`.
-2. In Project Settings / API / Data API, make sure `public` is an exposed schema if the app will use PostgREST.
-3. Run `Database/Migrations/0001_apex_core.sql` in the SQL Editor or through an authorized migration tool.
-4. Confirm every APEX table has RLS enabled and the intended policies/grants are installed.
-5. Configure Auth providers, email confirmation and redirect URLs for Android/iOS.
-6. In Unity Player Settings, set Internet Access to Require for Android.
+This is a small HTTP adapter, not the full official Supabase SDK. Access tokens remain in memory only. Before production, implement secure refresh-token storage using Android Keystore and iOS Keychain through a vetted Unity plugin. Never store refresh tokens in plain PlayerPrefs.
 
-## Current access limitation
-The supplied project ref is not present in the Supabase projects returned by the currently connected Supabase account, and direct project inspection is denied. Therefore the migration has NOT been applied and live REST/Auth connectivity has NOT been verified. Reconnect/authorize the Supabase integration with the account/organization that owns this project, or add this project to the connected account's accessible organization.
+## Remaining integration checks
+1. Confirm `public` is enabled as a Data API exposed schema in the Supabase dashboard.
+2. Configure Auth email confirmation and Android/iOS redirect URLs.
+3. Run real sign-up/sign-in/profile/regions tests from Unity Editor.
+4. Add trusted Edge Function or dedicated server workflows for wallet posting, purchases, vehicle grants, property/business transfers and race settlement.
+5. Test owner isolation, refresh expiry, network errors, rate limits and idempotency.
+6. Keep the service-role key exclusively in trusted server-side secrets.
 
-## Session storage
-The sample client keeps Auth tokens in memory only. Before production, implement secure refresh-token storage using Android Keystore and iOS Keychain via a vetted Unity plugin. Do not store refresh tokens in plain PlayerPrefs.
-
-## Important 2026 Data API behavior
-New `public` tables are not necessarily exposed to the Data API automatically. Explicitly verify the exposed-schema setting in the project dashboard, in addition to grants and RLS. RLS protects rows; Data API exposure and SQL privileges are separate controls.
+Do not run these migrations on Qulup or ASIX.

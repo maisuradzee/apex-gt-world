@@ -46,7 +46,6 @@ namespace ApexGTWorld.Backend
     {
         public string user_id;
         public string display_name;
-        public string home_region;
     }
 
     [Serializable]

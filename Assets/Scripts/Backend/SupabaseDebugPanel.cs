@@ -50,7 +50,7 @@ namespace ApexGTWorld.UI
             displayName = GUILayout.TextField(displayName, 24);
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("SAVE PROFILE", GUILayout.Height(34)))
-                StartCoroutine(client.SaveMyProfile(displayName, "metro_city", (profile, error) => status = error ?? "Profile saved"));
+                StartCoroutine(client.SaveMyProfile(displayName, (profile, error) => status = error ?? "Profile saved"));
             if (GUILayout.Button("LOAD PROFILE", GUILayout.Height(34)))
                 StartCoroutine(client.FetchMyProfile((profile, error) => status = error ?? (profile == null ? "Profile not found" : "Profile: " + profile.display_name)));
             GUILayout.EndHorizontal();

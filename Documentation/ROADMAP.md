@@ -1,14 +1,15 @@
 # Roadmap and Acceptance Gates
 
-## Gate 0 — Source foundation
+## Gate 0 — Source and backend foundation
 - [x] Product choices and architecture outline.
 - [x] Unity starter C# source and Editor scene generator.
 - [x] Android build menu script.
-- [x] Supabase initial schema draft with RLS and explicit client grants.
-- [x] GitHub write access verified; complete source tree committed to `main`.
-- [x] GitHub Actions source extraction and static validation passed.
+- [x] Supabase initial schema with RLS and least-privilege grants.
+- [x] Dedicated Supabase project provisioned and reachable.
+- [x] Migrations 0001 and 0002 applied and recorded.
+- [x] Security Advisor clean; column privileges and private-secret isolation verified.
+- [x] GitHub source tree committed to `main`; CI source validation passes.
 - [ ] Create/open the Unity 6 LTS URP project and pin exact Editor/package versions.
-- [ ] Apply the initial Supabase migration to the dedicated development project after review.
 
 ## Gate 1 — Offline vehicle vertical slice
 - [ ] Generate starter scenes in Unity Editor.
@@ -23,11 +24,12 @@
 - [ ] Add traffic and pedestrian prototypes with simulation-distance limits.
 - [ ] Add garage and vehicle selection.
 
-## Gate 3 — Backend foundation
-- [ ] Apply migrations in the dedicated development Supabase project.
-- [ ] Verify Auth, profile provisioning and secure session refresh.
-- [ ] Implement trusted server-side wallet and ownership APIs.
-- [ ] Complete RLS, grants and security-advisor review.
+## Gate 3 — Backend integration
+- [ ] Confirm Data API exposure and Auth redirect settings.
+- [ ] Verify Auth sign-up/sign-in, profile save and region fetch from Unity.
+- [ ] Implement trusted server-side wallet, inventory and ownership APIs.
+- [ ] Add secure refresh-token storage.
+- [ ] Add integration tests for owner isolation, idempotency and failure handling.
 
 ## Gate 4 — Multiplayer
 - [ ] Implement dedicated authoritative world server.

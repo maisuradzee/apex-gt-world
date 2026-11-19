@@ -75,6 +75,19 @@ for fragment in required_followup:
     if fragment not in followup_sql:
         raise SystemExit("Missing security/performance follow-up migration statement: " + fragment)
 
+# Keep profile writes aligned with the database's column-level grants.
+dto_source = (ROOT / "Assets/Scripts/Backend/SupabaseDtos.cs").read_text(encoding="utf-8")
+upsert_match = re.search(r"class ApexProfileUpsert\s*\{([^}]+)\}", dto_source, re.S)
+if not upsert_match:
+    raise SystemExit("ApexProfileUpsert DTO is missing")
+if "home_region" in upsert_match.group(1):
+    raise SystemExit("Profile upsert must not send home_region; region changes are server-controlled")
+client_source = (ROOT / "Assets/Scripts/Backend/SupabaseRestClient.cs").read_text(encoding="utf-8")
+if re.search(r"SaveMyProfile\s*\([^)]*homeRegion", client_source):
+    raise SystemExit("SaveMyProfile must not accept a client-controlled home region")
+if "home_region = string.IsNullOrEmpty(homeRegion)" in client_source:
+    raise SystemExit("Profile payload must not attempt to write the server-controlled home_region field")
+
 # Reject actual credential values in code/config. Placeholders and public publishable keys are permitted.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
     for path in base.rglob("*"):

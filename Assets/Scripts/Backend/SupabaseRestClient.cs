@@ -102,7 +102,7 @@ namespace ApexGTWorld.Backend
             });
         }
 
-        public IEnumerator SaveMyProfile(string displayName, string homeRegion, Action<ApexProfile, string> completed)
+        public IEnumerator SaveMyProfile(string displayName, Action<ApexProfile, string> completed)
         {
             if (!IsSignedIn || CurrentSession.user == null)
             {
@@ -119,8 +119,7 @@ namespace ApexGTWorld.Backend
             var body = JsonUtility.ToJson(new ApexProfileUpsert
             {
                 user_id = CurrentSession.user.id,
-                display_name = displayName.Trim(),
-                home_region = string.IsNullOrEmpty(homeRegion) ? "metro_city" : homeRegion
+                display_name = displayName.Trim()
             });
 
             yield return Send("/rest/v1/apex_profiles?on_conflict=user_id", "POST", body, true, (json, error) =>
