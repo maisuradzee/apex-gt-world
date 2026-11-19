@@ -35,6 +35,15 @@ namespace ApexGTWorld.Offline
             if (definition == null) definition = defaultEvent;
             if (definition.checkpointCount != checkpoints.Length) return false;
 
+            StopRace();
+            playerRoot.transform.SetPositionAndRotation(new Vector3(0f, 0.6f, -5f), Quaternion.identity);
+            Rigidbody playerBody = playerRoot.GetComponent<Rigidbody>();
+            if (playerBody != null)
+            {
+                playerBody.velocity = Vector3.zero;
+                playerBody.angularVelocity = Vector3.zero;
+            }
+
             participants.Clear();
             OfflineRaceParticipant playerParticipant = playerRoot.GetComponent<OfflineRaceParticipant>();
             if (playerParticipant == null) playerParticipant = playerRoot.AddComponent<OfflineRaceParticipant>();
@@ -54,6 +63,8 @@ namespace ApexGTWorld.Offline
             currentSession = new OfflineRaceSession(definition, participants);
             for (int i = 0; i < aiDrivers.Count; i++)
             {
+                aiRoots[i].transform.SetPositionAndRotation(
+                    new Vector3((i - 1) * 2.2f, 0.7f, -8f - i * 3f), Quaternion.identity);
                 aiRoots[i].SetActive(true);
                 Rigidbody aiBody = aiRoots[i].GetComponent<Rigidbody>();
                 if (aiBody != null)
@@ -68,6 +79,9 @@ namespace ApexGTWorld.Offline
 
         public void StopRace()
         {
+            for (int i = 0; i < participants.Count; i++)
+                if (participants[i] != null) participants[i].DetachSession();
+            participants.Clear();
             currentSession = null;
             for (int i = 0; i < aiDrivers.Count; i++)
             {
