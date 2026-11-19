@@ -8,9 +8,10 @@
 - [x] Scene registration preserves existing Build Settings scenes.
 - [x] Supabase schema with RLS and least-privilege client grants.
 - [x] Dedicated Supabase project provisioned and reachable.
-- [x] Migrations 0001–0004 applied and recorded.
+- [x] Migrations 0001–0005 applied and recorded.
 - [x] Auth bootstrap trigger verified using a rollback-safe transaction.
 - [x] Trusted service_role read/write privileges verified for current and future tables.
+- [x] Atomic, idempotent wallet transaction RPC implemented and rollback-tested.
 - [x] Security Advisor clean; player/client privilege boundaries verified.
 - [x] GitHub source tree committed to `main`; CI source validation passes.
 - [ ] Unity 6 LTS URP project opened and exact Editor/package versions pinned.
@@ -31,7 +32,8 @@
 ## Gate 3 — Backend integration
 - [ ] Confirm Data API is enabled and Auth redirect settings are configured.
 - [ ] Verify real Unity Auth sign-up/sign-in, profile PATCH and regions GET.
-- [ ] Implement trusted server-side wallet, inventory and ownership APIs.
+- [ ] Implement trusted Edge Function/dedicated-server endpoint that validates authoritative events before wallet RPC.
+- [ ] Implement purchase, inventory and vehicle ownership transactions.
 - [ ] Add secure refresh-token storage.
 - [ ] Add integration tests for owner isolation, idempotency and failure handling.
 
