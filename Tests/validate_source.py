@@ -11,6 +11,7 @@ REQUIRED = [
     "Assets/Scripts/MotorcyclePhysics/MotorcyclePrototypeController.cs",
     "Assets/Editor/StarterSceneGenerator.cs",
     "Database/Migrations/0001_apex_core.sql",
+    "Database/Migrations/0002_apex_security_and_region_indexes.sql",
 ]
 
 for relative in REQUIRED:
@@ -59,6 +60,19 @@ if "grant select, insert, update on public.apex_profiles to authenticated;" in s
     raise SystemExit("Broad profile table write grants are forbidden")
 if "grant select, insert, update, delete on table apex_private.apex_race_session_secrets to service_role;" not in sql.lower():
     raise SystemExit("Trusted service role is missing private session-secret privileges")
+
+followup_sql = (ROOT / "Database/Migrations/0002_apex_security_and_region_indexes.sql").read_text(encoding="utf-8").lower()
+required_followup = [
+    "create index if not exists apex_profiles_home_region_idx",
+    "create index if not exists apex_businesses_region_idx",
+    "create index if not exists apex_properties_region_idx",
+    "create index if not exists apex_race_sessions_region_idx",
+    "create policy apex_race_session_secrets_deny_clients",
+    "using (false) with check (false)",
+]
+for fragment in required_followup:
+    if fragment not in followup_sql:
+        raise SystemExit("Missing security/performance follow-up migration statement: " + fragment)
 
 # Reject actual credential values in code/config. Placeholders and public publishable keys are permitted.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
