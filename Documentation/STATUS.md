@@ -12,9 +12,9 @@
 - [x] Race finalization hardened: unique placements, integer-only scores/times/payouts; rejection and two-player success tests passed.
 - [x] Race creation idempotency added through a private request-key table and service-only RPC; create retries return the original session.
 - [x] JWT-protected player reward claim function `settle-race-result` deployed ACTIVE.
-- [x] Shared-token protected race control function `race-session-control` deployed ACTIVE.
+- [x] Shared-token protected race control function `race-session-control` deployed ACTIVE (version 4; includes idempotent create request key).
 - [x] .NET 8 race-server control client added; uses environment variables, no Supabase service-role key.
-- [x] GitHub CI passed source/security validation, Deno type-checks for both Edge Functions, and .NET 8 race-server client build.
+- [x] GitHub CI passed source/security validation, Deno type-checks, .NET 8 build and race-server HTTP contract tests.
 
 ## Pending / not verified
 - [ ] Set `APEX_RACE_SERVER_TOKEN` in Supabase Edge Function secrets and dedicated server environment.

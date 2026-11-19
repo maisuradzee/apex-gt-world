@@ -25,4 +25,4 @@ The create RPC and finalize RPC are idempotent. Create uses a private request-ke
 dotnet build Server/RaceServer/ApexGtWorld.RaceServer.csproj
 ```
 
-This is the control-plane client only. It does not yet implement simulation ticks, physics, replication, participant lifecycle, result calculation or anti-cheat.
+The GitHub Actions workflow builds the client and runs contract tests with a fake HTTP handler. This is still the control-plane client only; it does not implement simulation ticks, physics, replication, participant lifecycle, result calculation or anti-cheat.

@@ -40,7 +40,7 @@ All ten migrations 0001–0010 are applied. They establish 11 public RLS tables,
 Set `APEX_RACE_SERVER_TOKEN` under GTWORLD Supabase Edge Function secrets, and set the exact same strong random token only in the dedicated race-server host environment. Use at least 32 characters. Without this secret, the function deliberately returns 503 and performs no operation. Do not put the token in GitHub, Unity or Android/iOS packages.
 
 ## Dedicated server client
-`Server/RaceServer/RaceControlClient.cs` is a standalone .NET 8 server-only helper. It reads `APEX_RACE_CONTROL_URL` and `APEX_RACE_SERVER_TOKEN` from environment variables and exposes create/start/finalize calls. It does not contain or require the Supabase service-role key.
+`Server/RaceServer/RaceControlClient.cs` is a standalone .NET 8 server-only helper. It reads `APEX_RACE_CONTROL_URL` and `APEX_RACE_SERVER_TOKEN` from environment variables and exposes create/start/finalize calls. Create requires a stable caller-supplied GUID, reused across retries. It does not contain or require the Supabase service-role key.
 
 Build:
 ```bash
@@ -51,6 +51,8 @@ This is the control-plane client only. The authoritative physics/simulation loop
 
 ## Unity integration
 Unity client supports Auth, profile update, region read, Wallet/Career GET and race reward claim by result ID. The debug UI is prototype-only. Refresh tokens are memory-only; production needs secure Android Keystore/iOS Keychain persistence.
+
+CI now type-checks both Edge Functions, builds this .NET helper and runs isolated HTTP contract tests for create/start/finalize, JSON fields, token header and input validation.
 
 ## Still pending
 1. Configure the race-server shared token.

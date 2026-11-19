@@ -6,8 +6,8 @@
 - [x] Ten Supabase migrations applied and security reviewed.
 - [x] Auth, wallet and race lifecycle transaction tests passed with rollback.
 - [x] Player reward claim Edge Function deployed with JWT verification.
-- [x] Race control Edge Function deployed with shared-token authentication.
-- [x] .NET 8 race-server control client prepared.
+- [x] Race control Edge Function deployed with shared-token authentication and idempotent create request keys.
+- [x] .NET 8 race-server control client prepared and contract-tested in CI.
 - [ ] Configure `APEX_RACE_SERVER_TOKEN` securely in Supabase and server environment.
 - [x] Pass Deno type checks and .NET 8 build in GitHub Actions.
 

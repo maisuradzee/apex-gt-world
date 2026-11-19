@@ -57,4 +57,4 @@ The dedicated race simulation process, Unity runtime tests, APK build and device
 ## GitHub
 Repository: https://github.com/maisuradzee/apex-gt-world
 
-CI checks source structure, secret exposure, migration security and server-only operations, type-checks both Deno functions, and builds `Server/RaceServer/ApexGtWorld.RaceServer.csproj`.
+CI checks source structure, secret exposure, migration security and server-only operations, type-checks both Deno functions, builds the .NET 8 race-server control client, and runs HTTP contract tests for create/start/finalize, request keys, token headers and input guards.
