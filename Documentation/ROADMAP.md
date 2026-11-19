@@ -4,14 +4,16 @@
 - [x] Product choices and architecture outline.
 - [x] Unity starter C# source and Editor scene generator.
 - [x] Android build menu script.
-- [x] Supabase initial schema with RLS and least-privilege grants.
+- [x] Car and motorcycle test-scene setup.
+- [x] Scene registration preserves existing Build Settings scenes.
+- [x] Supabase schema with RLS and least-privilege client grants.
 - [x] Dedicated Supabase project provisioned and reachable.
-- [x] Migrations 0001 and 0002 applied and recorded.
-- [x] Security Advisor clean; column privileges and private-secret isolation verified.
+- [x] Migrations 0001–0004 applied and recorded.
+- [x] Auth bootstrap trigger verified using a rollback-safe transaction.
+- [x] Trusted service_role read/write privileges verified for current and future tables.
+- [x] Security Advisor clean; player/client privilege boundaries verified.
 - [x] GitHub source tree committed to `main`; CI source validation passes.
-- [x] Auth bootstrap migration and matching Unity client flow prepared.
-- [ ] Apply migration 0003 and validate Auth-trigger provisioning.
-- [ ] Create/open the Unity 6 LTS URP project and pin exact Editor/package versions.
+- [ ] Unity 6 LTS URP project opened and exact Editor/package versions pinned.
 
 ## Gate 1 — Offline vehicle vertical slice
 - [ ] Generate starter scenes in Unity Editor.
@@ -27,8 +29,8 @@
 - [ ] Add garage and vehicle selection.
 
 ## Gate 3 — Backend integration
-- [ ] Confirm Data API exposure and Auth redirect settings.
-- [ ] Verify Auth sign-up/sign-in, profile save and region fetch from Unity.
+- [ ] Confirm Data API is enabled and Auth redirect settings are configured.
+- [ ] Verify real Unity Auth sign-up/sign-in, profile PATCH and regions GET.
 - [ ] Implement trusted server-side wallet, inventory and ownership APIs.
 - [ ] Add secure refresh-token storage.
 - [ ] Add integration tests for owner isolation, idempotency and failure handling.
