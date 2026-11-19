@@ -265,6 +265,22 @@ for fragment in required_lifecycle:
 if "grant execute on function public.apex_server_finalize_race_session(uuid, jsonb) to authenticated" in race_lifecycle_sql:
     raise SystemExit("Race finalization must never be executable by client roles")
 
+# The standalone race-server helper must keep its shared secret outside the Unity client.
+race_client = (ROOT / "Server/RaceServer/RaceControlClient.cs").read_text(encoding="utf-8")
+for fragment in [
+    'Environment.GetEnvironmentVariable("APEX_RACE_CONTROL_URL")',
+    'Environment.GetEnvironmentVariable("APEX_RACE_SERVER_TOKEN")',
+    '"x-apex-race-server-token"',
+    "CreateSessionAsync",
+    "StartSessionAsync",
+    "FinalizeSessionAsync",
+    'JsonPropertyName("reward_credits")',
+]:
+    if fragment not in race_client:
+        raise SystemExit("Missing dedicated race-server control client statement: " + fragment)
+if "SUPABASE_SERVICE_ROLE_KEY" in race_client or "sb_secret_" in race_client:
+    raise SystemExit("Service-role or secret API keys must not be embedded in the race-server helper source")
+
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
     for path in base.rglob("*"):
