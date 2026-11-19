@@ -46,6 +46,7 @@ namespace ApexGTWorld.Offline
 
             if (raceCourse != null)
                 raceCourse.Configure(playerRoot);
+            ApplyGarageTuning();
 
             qualityLevel = Mathf.Clamp(QualitySettings.GetQualityLevel(), 0,
                 Mathf.Max(0, QualitySettings.names.Length - 1));
@@ -184,10 +185,14 @@ namespace ApexGTWorld.Offline
             y += 30f;
             GUI.Label(new Rect(x, y, width, 28f), "Owned vehicles: " +
                 (profile != null && profile.ownedVehicleIds != null ? profile.ownedVehicleIds.Length : 0));
-            y += 44f;
-            GUI.Label(new Rect(x, y, width, 44f),
-                "Additional licensed vehicle models and tuning parts will be added as content is produced.");
-            y += 58f;
+            y += 36f;
+            if (profile != null)
+            {
+                AddButton(x, ref y, width, "ENGINE LVL " + profile.engineUpgradeLevel + "  |  UPGRADE 250 CR", () => PurchaseUpgrade("engine", 250));
+                AddButton(x, ref y, width, "HANDLING LVL " + profile.handlingUpgradeLevel + "  |  UPGRADE 250 CR", () => PurchaseUpgrade("handling", 250));
+                AddButton(x, ref y, width, "BRAKES LVL " + profile.brakeUpgradeLevel + "  |  UPGRADE 250 CR", () => PurchaseUpgrade("brakes", 250));
+            }
+            DrawMessage(x, ref y, width);
             AddButton(x, ref y, width, "BACK", () => state = ScreenState.MainMenu);
         }
 
@@ -357,6 +362,34 @@ namespace ApexGTWorld.Offline
             qualityLevel = (qualityLevel + 1) % count;
             QualitySettings.SetQualityLevel(qualityLevel, true);
             message = "Graphics quality: " + QualitySettings.names[qualityLevel];
+        }
+
+        private void PurchaseUpgrade(string upgradeId, long price)
+        {
+            OfflineGameManager manager = OfflineGameManager.Instance;
+            if (manager == null)
+            {
+                message = "Local profile is unavailable.";
+                return;
+            }
+
+            if (!manager.TryPurchaseUpgrade(upgradeId, price))
+            {
+                message = "Upgrade not purchased. Check Credits, maximum level, or local save status.";
+                return;
+            }
+
+            ApplyGarageTuning();
+            message = upgradeId.ToUpperInvariant() + " upgrade purchased and saved locally.";
+        }
+
+        private void ApplyGarageTuning()
+        {
+            OfflineGameManager manager = OfflineGameManager.Instance;
+            if (vehicle == null || manager == null || manager.Profile == null) return;
+            OfflinePlayerProfile profile = manager.Profile;
+            vehicle.ApplyGarageUpgrades(profile.engineUpgradeLevel,
+                profile.handlingUpgradeLevel, profile.brakeUpgradeLevel);
         }
 
         private static float panelSafeWidth(float width) => Mathf.Max(180f, width);
