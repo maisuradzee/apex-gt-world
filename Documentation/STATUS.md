@@ -8,32 +8,32 @@
 - [x] Android IL2CPP/ARM64 build menu.
 - [x] Supabase UnityWebRequest Auth/PostgREST adapter and development debug panel.
 - [x] Dedicated Supabase project `GTWORLD` reachable and healthy.
-- [x] Migrations 0001–0006 applied: 11 public tables, RLS, restricted grants, private session secrets, Auth bootstrap, service grants, wallet RPC and race reward field.
+- [x] Migrations 0001–0007 applied: 11 public tables, RLS, restricted grants, private session secrets, Auth bootstrap, service grants, wallet RPC, race reward field and authoritative lifecycle RPCs.
 - [x] RLS verified on all 11 public tables and the private secrets table.
 - [x] Auth bootstrap trigger transaction test passed; rollback left no test rows.
 - [x] Wallet RPC test passed: idempotent award, debit, overdraft rejection and mismatch rejection.
 - [x] Player RLS test confirmed Wallet/Career owner isolation.
-- [x] Service role has backend access; client roles cannot write wallet/race-result state or execute wallet RPC.
+- [x] Race lifecycle RPCs transaction-tested: start, idempotent start, finalize, idempotent finalize and one reward ledger credit; rollback left no test data.
+- [x] Service role has backend access; client roles cannot write wallet/race-result state or execute wallet/race lifecycle RPCs.
 - [x] `settle-race-result` Edge Function deployed ACTIVE with JWT verification enabled.
 - [x] Function verifies user, race-result owner, server validation, finished session and server-stored payout before settling idempotently.
 - [x] Unity Wallet/Career GET methods and race-reward claim bridge added to source.
-- [x] Supabase Security Advisor returned no findings after migration 0006.
+- [x] Supabase Security Advisor returned no findings after migration 0007.
 
 ## Not completed or not verified
-- [ ] Final CI for the Unity race-claim bridge and documentation update.
+- [ ] Dedicated authoritative race-server process that invokes lifecycle RPCs and validates simulation.
+- [ ] Live Unity Auth/PostgREST/Edge Function smoke tests.
 - [ ] Unity Editor compilation (not available in this execution environment).
 - [ ] Play-mode physics, camera and input validation.
 - [ ] Android APK build and physical-device installation.
-- [ ] Live Unity Auth/PostgREST/Edge Function smoke tests.
-- [ ] Implement dedicated authoritative race server that writes validated placements and server-calculated reward_credits.
 - [ ] Secure refresh-token persistence using Android Keystore/iOS Keychain.
-- [ ] Purchase, vehicle ownership, property/business and race-server APIs.
-- [ ] Dedicated persistent-world/race server implementation and hosting.
+- [ ] Purchase, vehicle ownership, property/business and progression APIs.
+- [ ] Dedicated persistent-world server, replication, hosting and load tests.
 - [ ] Vehicle/motorcycle art, animation, audio, final tracks and world content.
-- [ ] Multiplayer load, anti-cheat, recovery and device performance tests.
+- [ ] Multiplayer anti-cheat, recovery and device performance tests.
 
 ## Supabase state
-Target: `hzawgrvonsqyqjyzzreg` (`GTWORLD`, `eu-west-1`), `ACTIVE_HEALTHY`. Six migrations are recorded. There are 11 public APEX tables and one private session-secret table, RLS enabled on all 12; four region seed rows exist. Security Advisor has no findings. `settle-race-result` is ACTIVE with JWT verification. Auth and wallet rollback tests left no test users or records. Qulup and ASIX were not modified.
+Target: `hzawgrvonsqyqjyzzreg` (`GTWORLD`, `eu-west-1`), `ACTIVE_HEALTHY`. Seven migrations are recorded. There are 11 public APEX tables and one private session-secret table, RLS enabled on all 12; four region seed rows exist. Security Advisor has no findings. `settle-race-result` is ACTIVE with JWT verification. Auth, wallet and race lifecycle rollback tests left no test records. Qulup and ASIX were not modified.
 
 ## Scope note
-This is a starter source foundation with a deployed backend reward-settlement boundary, not yet a playable or production-ready game. Complete race-server validation, Unity compilation and device testing remain required.
+This is a starter source foundation with deployed backend race lifecycle primitives and a reward-settlement boundary, not yet a playable or production-ready game. The dedicated race-server process, Unity compilation and device testing remain required.

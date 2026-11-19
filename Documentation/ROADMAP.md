@@ -7,15 +7,17 @@
 - [x] Car and motorcycle test-scene setup; preserve existing Build Settings.
 - [x] Supabase schema with RLS and least-privilege client grants.
 - [x] Dedicated Supabase project provisioned and reachable.
-- [x] Migrations 0001–0006 applied and recorded.
+- [x] Migrations 0001–0007 applied and recorded.
 - [x] Auth bootstrap trigger verified transactionally.
 - [x] Trusted service_role privileges verified.
 - [x] Atomic, idempotent wallet transaction RPC implemented and rollback-tested.
 - [x] Player Wallet/Career RLS isolation tested.
-- [x] JWT-protected race reward Edge Function deployed; it trusts only validated server result data.
+- [x] JWT-protected race reward Edge Function deployed.
+- [x] Authoritative race lifecycle start/finalize RPCs implemented and transaction-tested.
 - [x] Unity Wallet/Career reads and race reward claim bridge added.
 - [x] Security Advisor clean; player/client privilege boundaries verified.
-- [ ] Final CI for Unity race-claim client and documentation.
+- [ ] Dedicated race-server process to call lifecycle RPCs and validate race simulation.
+- [ ] Final CI after lifecycle documentation update and Unity Editor compilation.
 - [ ] Unity 6 LTS URP project opened and exact Editor/package versions pinned.
 
 ## Gate 1 — Offline vehicle vertical slice
@@ -32,7 +34,7 @@
 - [ ] Add garage and vehicle selection.
 
 ## Gate 3 — Backend integration
-- [ ] Implement authoritative race server to create/validate results and calculate reward_credits.
+- [ ] Implement dedicated authoritative race server and connect it to start/finalize RPCs.
 - [ ] Verify real Unity Auth, profile, Wallet/Career and Edge Function claim flows.
 - [ ] Implement trusted purchase, inventory, vehicle ownership and progression APIs.
 - [ ] Add secure refresh-token storage.
