@@ -68,7 +68,8 @@ required_followup = [
     "create index if not exists apex_properties_region_idx",
     "create index if not exists apex_race_sessions_region_idx",
     "create policy apex_race_session_secrets_deny_clients",
-    "using (false) with check (false)",
+    "using (false)",
+    "with check (false)",
 ]
 for fragment in required_followup:
     if fragment not in followup_sql:
