@@ -9,7 +9,7 @@
 Unity uses the supplied publishable key. Never store `service_role`, `sb_secret_...`, database password or server token in Unity or source control.
 
 ## Applied migrations
-All seven migrations 0001–0007 are applied. They establish 11 public RLS tables, a private secret table, Auth bootstrap, service-role grants, idempotent wallet settlement, server-owned race reward amount and atomic race start/finalize RPCs.
+All eight migrations 0001–0007 are applied. They establish 11 public RLS tables, a private secret table, Auth bootstrap, service-role grants, idempotent wallet settlement, server-owned race reward amount and atomic race start/finalize RPCs.
 
 ## Verified DB boundaries
 - Client roles cannot write wallet balances, ledger, career progress or race-result rows.

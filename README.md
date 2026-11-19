@@ -36,7 +36,7 @@ The Unity starter source tree is committed to `main`. GitHub Actions validates s
 6. Run the test plan before using `APEX GT WORLD > Build > Build Android APK`.
 
 ## Supabase
-Target: `GTWORLD` (`hzawgrvonsqyqjyzzreg`, `eu-west-1`), verified `ACTIVE_HEALTHY`. Seven migrations are applied:
+Target: `GTWORLD` (`hzawgrvonsqyqjyzzreg`, `eu-west-1`), verified `ACTIVE_HEALTHY`. Eight migrations are applied:
 - `0001_apex_core.sql` — public data model and RLS.
 - `0002_apex_security_and_region_indexes.sql` — private-secret isolation and indexes.
 - `0003_apex_auth_user_bootstrap.sql` — Auth trigger provisions profile, wallet and progression.

@@ -10,8 +10,9 @@ The migrations under `Migrations/` target the dedicated APEX GT WORLD Supabase p
 5. `0005_apex_wallet_transactions.sql` — atomic, idempotent wallet RPC.
 6. `0006_apex_race_reward_settlement.sql` — bounded server-owned race Credits payout.
 7. `0007_apex_authoritative_race_lifecycle.sql` — service-only race start/finalize RPCs.
+8. `0008_apex_race_result_integer_validation.sql` — unique placements and whole-number result validation.
 
-All seven migrations are applied to `GTWORLD`.
+All eight migrations are applied to `GTWORLD`.
 
 ## Security model
 - RLS enabled on all 11 public APEX tables and the private session-secret table.

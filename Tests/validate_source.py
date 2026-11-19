@@ -17,6 +17,7 @@ REQUIRED = [
     "Database/Migrations/0005_apex_wallet_transactions.sql",
     "Database/Migrations/0006_apex_race_reward_settlement.sql",
     "Database/Migrations/0007_apex_authoritative_race_lifecycle.sql",
+    "Database/Migrations/0008_apex_race_result_integer_validation.sql",
     "supabase/functions/settle-race-result/index.ts",
     "supabase/functions/settle-race-result/deno.json",
 ]
@@ -299,6 +300,18 @@ for fragment in required_control:
         raise SystemExit("Missing protected race control operation: " + fragment)
 if "auth.getUser(" in race_control_source:
     raise SystemExit("Race control must not use player JWT as its server authentication mechanism")
+
+# Race finalization rejects fractional results and duplicate player placements.
+race_hardening_sql = (ROOT / "Database/Migrations/0008_apex_race_result_integer_validation.sql").read_text(encoding="utf-8").lower()
+for fragment in [
+    "create unique index if not exists apex_race_results_session_placement_uidx",
+    "v_distinct_placements",
+    "each player must have a unique race placement",
+    "placement, score and reward_credits must be whole numbers",
+    "finish_time_ms must be a whole number",
+]:
+    if fragment not in race_hardening_sql:
+        raise SystemExit("Missing strict race result validation statement: " + fragment)
 
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github", ROOT / "Server", ROOT / "supabase"):
