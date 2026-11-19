@@ -15,6 +15,9 @@ REQUIRED = [
     "Database/Migrations/0003_apex_auth_user_bootstrap.sql",
     "Database/Migrations/0004_apex_service_role_privileges.sql",
     "Database/Migrations/0005_apex_wallet_transactions.sql",
+    "Database/Migrations/0006_apex_race_reward_settlement.sql",
+    "supabase/functions/settle-race-result/index.ts",
+    "supabase/functions/settle-race-result/deno.json",
 ]
 
 for relative in REQUIRED:
@@ -195,6 +198,37 @@ if "public sealed class ApexWallet" not in dto_source or "public long credits;" 
     raise SystemExit("ApexWallet DTO is incomplete")
 if "public sealed class ApexPlayerProgress" not in dto_source or "public int career_level;" not in dto_source or "public long career_xp;" not in dto_source or "public string[] unlocked_content;" not in dto_source:
     raise SystemExit("ApexPlayerProgress DTO is incomplete")
+
+# Race reward settlement trusts only server-validated result data, never client-supplied amounts.
+race_sql = (ROOT / "Database/Migrations/0006_apex_race_reward_settlement.sql").read_text(encoding="utf-8").lower()
+for fragment in [
+    "add column if not exists reward_credits bigint not null default 0",
+    "check (reward_credits between 0 and 1000000000)",
+    "trusted race server",
+]:
+    if fragment not in race_sql:
+        raise SystemExit("Missing server-owned race reward database rule: " + fragment)
+
+race_function = (ROOT / "supabase/functions/settle-race-result/index.ts").read_text(encoding="utf-8")
+required_race_function = [
+    'request.headers.get("Authorization")',
+    "auth.getUser(jwt)",
+    '.eq("user_id", userData.user.id)',
+    "raceResult.validated !== true",
+    'session.status !== "finished"',
+    'body.race_result_id',
+    'Object.keys(body).some((key) => key !== "race_result_id")',
+    'admin.rpc(',
+    '"apex_server_apply_wallet_delta"',
+    'p_amount: rewardCredits',
+    'p_idempotency_key: idempotencyKey',
+    'race-result:${raceResult.id}:credits',
+]
+for fragment in required_race_function:
+    if fragment not in race_function:
+        raise SystemExit("Missing race-reward settlement security check: " + fragment)
+if "body.amount" in race_function or "body.user_id" in race_function or "body.currency" in race_function:
+    raise SystemExit("Race reward endpoint must not accept amount, currency, or player identity from the client")
 
 # Reject actual credential values in code/config. Public publishable keys are allowed.
 for base in (ROOT / "Assets", ROOT / "Database", ROOT / ".github"):
