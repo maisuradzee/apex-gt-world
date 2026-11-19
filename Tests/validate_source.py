@@ -464,7 +464,7 @@ for fragment in ["RaceControlClient.FromEnvironment()", "APEX_RACE_CONTROL_URL",
         raise SystemExit("Windows race-server host is missing its configuration/readiness boundary")
 
 windows_installer = (ROOT / "Server/RaceServer/Windows/Install-RaceServerService.ps1").read_text(encoding="utf-8")
-for fragment in ["New-Service", "APEX_RACE_SERVER_TOKEN", "NT AUTHORITY\\LocalService", "Start-Service"]:
+for fragment in ["New-Service", "scriptDirectoryExe", "APEX_RACE_SERVER_TOKEN", "NT AUTHORITY\\LocalService", "sc.exe description", "Start-Service"]:
     if fragment not in windows_installer:
         raise SystemExit("Windows race-server installer is missing required service setup: " + fragment)
 if "Write-Host $token" in windows_installer or "Write-Output $token" in windows_installer:
