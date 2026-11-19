@@ -1,9 +1,19 @@
 # APEX GT WORLD — Technical Architecture V2
 
 ## 1. Product architecture
-One persistent player identity spans driving, motorcycle racing, open-world travel, roleplay, jobs, properties, businesses, clubs and competitive motorsport. The game is designed as one connected world with several independently streamed regions.
+The delivery order is offline-first: build a complete local single-player driving loop before enabling remote accounts, shared-world networking or online competition. The long-term product still has one player identity spanning driving, motorcycle racing, open-world travel, roleplay, jobs, properties, businesses, clubs and competitive motorsport. The game is designed as one connected world with several independently streamed regions.
 
 ## 2. Runtime boundaries
+
+### Offline local runtime (first playable milestone)
+- Unity boots directly into a local player profile; no authentication or network request is required.
+- `OfflinePlayerProfile` stores local credits, career XP/level, vehicle ownership/selection, unlocked regions, completed events and distance.
+- `OfflineSaveStore` writes a versioned JSON save in `Application.persistentDataPath`, maintains a recovery backup and restores the backup if the primary save is invalid.
+- `OfflineGameManager` owns local progression, periodic saves, pause/quit saves and local event idempotency.
+- `OfflineGameFlow` supplies Main Menu, Free Drive, Career, Garage, Settings, Pause and Results screens.
+- `OfflineRaceCourse` creates a compact four-gate circuit and a three-driver AI grid. `OfflineRaceSession` validates checkpoint order and lap completion; the local career event pays its one-time reward only after the player finishes.
+- Garage upgrades persist engine, handling and brake levels and apply them to the prototype `VehicleController` tuning.
+- Local save data is editable by the device owner and is not authoritative for online rewards, leaderboards, purchases or competitive race results.
 
 ### Unity client
 Presentation, rendering, audio, input, camera, accessibility, local prediction, UI, asset streaming and client-side convenience logic. The client is not trusted for money, inventory ownership, rewards, race placements or enforcement decisions.
@@ -14,7 +24,7 @@ Authoritative validation of player motion, active interactions, nearby entity st
 ### Race servers
 Separate authoritative instances for circuit racing, time attack, drift battles, endurance and motorcycle events. The race server controls session phase, timing, checkpoints, penalties, standings and final results. The .NET `RaceSessionCoordinator` now links the local race state to the durable create/start/finalize API, including retry-safe finalization. A .NET 8 Worker Service host is also present for Windows deployment; it validates protected control configuration and holds the process lifecycle, but remains a control-plane shell until simulation and networking adapters are connected. Its `RaceSessionRuntime` provides a tested session state machine: 1–64 entrants, ordered checkpoint progression across configurable 1–100 lap races, monotonic server timestamps, finish-time calculation, DNF/disqualification and deterministic final placements. A trusted server reward policy supplies Credits payouts. This is not yet a complete authoritative simulation: server-side vehicle physics, telemetry validation, movement anti-cheat, networking/replication and reconnect handling remain separate work.
 
-### Backend
+### Backend (later online phase)
 - Supabase Auth: identity/session issuance.
 - PostgreSQL: durable profiles, progression, ownership, configuration and transaction ledger.
 - Trusted Edge Functions / backend services: privileged workflows.
@@ -48,7 +58,7 @@ Shared lifecycle/data interfaces with two independent simulation models:
 Camera changes are presentation-only and never change physics.
 
 ## 5. Networking
-The first local source package intentionally has no NGO transport dependency, so it compiles in a fresh URP project without needing network packages. Select and pin the current supported Netcode packages only after the project Editor version is fixed. Server-authoritative design remains mandatory for wallet, race results, ownership and competitive state.
+Networking is intentionally not needed for the first playable offline build. The first local source package intentionally has no NGO transport dependency, so it compiles in a fresh URP project without needing network packages. Select and pin the current supported Netcode packages only after the project Editor version is fixed. Server-authoritative design remains mandatory for wallet, race results, ownership and competitive state.
 
 Unity's current docs distinguish Netcode for GameObjects (higher-level GameObject workflows) and Netcode for Entities (high-performance DOTS workflows). Start with GameObjects for the first small test cell; benchmark before selecting Entities for denser cells.
 
@@ -56,6 +66,7 @@ Unity's current docs distinguish Netcode for GameObjects (higher-level GameObjec
 Use URP, LODs, occlusion culling, texture compression, addressables, additive scene streaming, object pools, bounded NPC simulation and adaptive quality. Profile CPU, GPU, RAM, thermal load, battery and network usage on real devices. 30/60 FPS are engineering targets, not measured results.
 
 ## 7. Security invariants
+- Offline local progression is separate from online balances and verified rewards.
 - Server validates purchases, rewards, ownership, race results and job payouts.
 - No service-role key in client builds.
 - RLS on every exposed table.

@@ -5,7 +5,7 @@ namespace ApexGTWorld.Core
     public sealed class GameBootstrap : MonoBehaviour
     {
         [SerializeField] private int targetFrameRate = 60;
-        [SerializeField] private bool showDevelopmentHud = true;
+        [SerializeField] private bool showDevelopmentHud = false;
 
         private void Awake()
         {

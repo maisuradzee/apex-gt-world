@@ -6,10 +6,24 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = [
     "README.md",
+    "ProjectSettings/ProjectVersion.txt",
     "Documentation/ARCHITECTURE.md",
+    "Documentation/UNITY_SETUP.md",
+    "Documentation/OFFLINE_PLAYTEST_CHECKLIST.md",
+    "Tools/Prepare-OfflineUnityProject.ps1",
     "Assets/Scripts/VehiclePhysics/VehicleController.cs",
     "Assets/Scripts/MotorcyclePhysics/MotorcyclePrototypeController.cs",
     "Assets/Editor/StarterSceneGenerator.cs",
+    "Assets/Scripts/Offline/OfflinePlayerProfile.cs",
+    "Assets/Scripts/Offline/OfflineSaveStore.cs",
+    "Assets/Scripts/Offline/OfflineGameManager.cs",
+    "Assets/Scripts/Core/GameBootstrap.cs",
+    "Assets/Scripts/Offline/OfflineGameFlow.cs",
+    "Assets/Scripts/Offline/OfflineRaceParticipant.cs",
+    "Assets/Scripts/Offline/OfflineRaceCheckpoint.cs",
+    "Assets/Scripts/Offline/OfflineRaceSession.cs",
+    "Assets/Scripts/Offline/OfflineAiDriver.cs",
+    "Assets/Scripts/Offline/OfflineRaceCourse.cs",
     "Database/Migrations/0001_apex_core.sql",
     "Database/Migrations/0002_apex_security_and_region_indexes.sql",
     "Database/Migrations/0003_apex_auth_user_bootstrap.sql",
@@ -30,6 +44,18 @@ for relative in REQUIRED:
 
 with (ROOT / "Packages/manifest.json").open(encoding="utf-8") as f:
     manifest = json.load(f)
+version_file = ROOT / "ProjectSettings/ProjectVersion.txt"
+if not version_file.is_file() or "m_EditorVersion: 6000.3.28f1" not in version_file.read_text(encoding="utf-8"):
+    raise SystemExit("Project must be pinned to Unity 6.3 LTS 6000.3.28f1")
+if manifest.get("dependencies", {}).get("com.unity.render-pipelines.universal") != "17.3.0":
+    raise SystemExit("URP 17.3.0 must be pinned in Packages/manifest.json")
+if manifest.get("dependencies", {}).get("com.unity.ugui") != "2.0.0":
+    raise SystemExit("uGUI 2.0.0 must be pinned in Packages/manifest.json")
+
+project_setup_script = (ROOT / "Tools/Prepare-OfflineUnityProject.ps1").read_text(encoding="utf-8")
+for fragment in ["robocopy", "targetSettings", "6000.3.28f1", "com.unity.render-pipelines.universal", "com.unity.ugui"]:
+    if fragment not in project_setup_script:
+        raise SystemExit("Windows Unity project setup script is missing: " + fragment)
 if not isinstance(manifest.get("dependencies"), dict):
     raise SystemExit("Packages/manifest.json must contain a dependencies object")
 
@@ -145,6 +171,62 @@ if scene_source.count("RegisterSceneInBuildSettings(") < 3:
     raise SystemExit("Both starter scene generators must register scenes through the preserving helper")
 if "EditorBuildSettings.scenes = new[]" in scene_source:
     raise SystemExit("Scene generation must not replace the existing Build Settings scene list")
+
+# Offline-first gameplay must not require Supabase Auth or network access to boot.
+offline_profile = (ROOT / "Assets/Scripts/Offline/OfflinePlayerProfile.cs").read_text(encoding="utf-8")
+for fragment in ["schemaVersion", "credits", "careerXp", "selectedVehicleId", "ownedVehicleIds", "unlockedRegionIds", "completedEventIds", "engineUpgradeLevel", "handlingUpgradeLevel", "brakeUpgradeLevel"]:
+    if fragment not in offline_profile:
+        raise SystemExit("Offline player profile is missing: " + fragment)
+
+offline_store = (ROOT / "Assets/Scripts/Offline/OfflineSaveStore.cs").read_text(encoding="utf-8")
+for fragment in ["Application.persistentDataPath", "TryLoad", "TrySave", "BackupFileName", "FileStream", "schemaVersion != 1", 'primary + ".corrupt"']:
+    if fragment not in offline_store:
+        raise SystemExit("Offline save store is missing: " + fragment)
+
+offline_manager = (ROOT / "Assets/Scripts/Offline/OfflineGameManager.cs").read_text(encoding="utf-8")
+for fragment in ["CompleteEvent", "TryPurchaseVehicle", "TrySelectVehicle", "UnlockRegion", "OnApplicationPause", "SaveNow", "completedEventIds", "previousCredits", "previousEvents", "previousSelection", "previousRegions"]:
+    if fragment not in offline_manager:
+        raise SystemExit("Offline progression manager is missing: " + fragment)
+if "UnityWebRequest" in offline_manager or "Supabase" in offline_manager:
+    raise SystemExit("Offline gameplay manager must not depend on Supabase or network requests")
+if "AddOfflineGameManager();" not in scene_source or "AddSupabaseDebugConsole();" in scene_source:
+    raise SystemExit("Generated starter scenes must launch with local offline profile support, not the Supabase debug console")
+
+offline_bootstrap = (ROOT / "Assets/Scripts/Core/GameBootstrap.cs").read_text(encoding="utf-8")
+if "showDevelopmentHud = false" not in offline_bootstrap:
+    raise SystemExit("Generated offline menu should not be obscured by the development overlay")
+
+offline_vehicle = (ROOT / "Assets/Scripts/VehiclePhysics/VehicleController.cs").read_text(encoding="utf-8")
+if "ApplyGarageUpgrades" not in offline_vehicle:
+    raise SystemExit("Vehicle controller must apply saved local garage upgrades")
+
+offline_flow = (ROOT / "Assets/Scripts/Offline/OfflineGameFlow.cs").read_text(encoding="utf-8")
+for fragment in ["START FREE DRIVE", "START CAREER RACE", "GARAGE", "PauseGame", "ResumeGame", "SetGameplayEnabled", "Time.timeScale = 0f"]:
+    if fragment not in offline_flow:
+        raise SystemExit("Offline game flow is missing: " + fragment)
+
+race_session = (ROOT / "Assets/Scripts/Offline/OfflineRaceSession.cs").read_text(encoding="utf-8")
+for fragment in ["TryRecordCheckpoint", "checkpointCount", "CompletedLaps", "rewardCredits", "playerRewardApplied"]:
+    if fragment not in race_session:
+        raise SystemExit("Offline race session is missing: " + fragment)
+
+race_course = (ROOT / "Assets/Scripts/Offline/OfflineRaceCourse.cs").read_text(encoding="utf-8")
+for fragment in ["Offline Checkpoint ", "Offline AI Driver ", "BeginRace", "StopRace", "ContinuousDynamic"]:
+    if fragment not in race_course:
+        raise SystemExit("Offline race course is missing: " + fragment)
+
+for relative, fragments in [
+    ("Assets/Scripts/Offline/OfflineRaceCheckpoint.cs", ["OnTriggerEnter", "TryPassCheckpoint"]),
+    ("Assets/Scripts/Offline/OfflineRaceParticipant.cs", ["NextCheckpointIndex", "CompletedLaps", "TryPassCheckpoint"]),
+    ("Assets/Scripts/Offline/OfflineAiDriver.cs", ["BeginDriving", "MovePosition", "MoveRotation"]),
+    ("Assets/Scripts/UI/TouchVehicleInput.cs", ["ResetInput", "state = new VehicleInput()"]),
+]:
+    source = (ROOT / relative).read_text(encoding="utf-8")
+    for fragment in fragments:
+        if fragment not in source:
+            raise SystemExit(relative + " is missing: " + fragment)
+if "AddOfflineGameFlow();" not in scene_source:
+    raise SystemExit("Generated car scene must include offline main menu and local race course")
 
 # Prevent cross-account debug flows from retaining an unrelated in-memory session.
 if "Sign out before switching accounts." not in client_source:
