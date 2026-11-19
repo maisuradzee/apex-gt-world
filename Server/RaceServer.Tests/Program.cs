@@ -88,6 +88,7 @@ ExpectArgument(() => client.StartSessionAsync(Guid.Empty), "empty session id");
 ExpectArgument(() => client.FinalizeSessionAsync(sessionId, Array.Empty<RaceResultSubmission>()), "empty results");
 
 RaceSessionRuntimeTests.Run();
+await RaceSessionCoordinatorTests.RunAsync();
 
 Console.WriteLine("Race-server contract tests passed: create/start/finalize payloads, stable request key, server-token header and input guards.");
 
