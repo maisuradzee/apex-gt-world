@@ -93,6 +93,33 @@ internal static class RaceSessionRuntimeTests
         Check(atomicCheckpoint.BuildFinalResults(_ => 0).Single().FinishTimeMs == 1,
             "checkpoint can be retried after a rejected finish event");
 
+        var multiLap = new RaceSessionRuntime(
+            Guid.Parse("10000000-0000-4000-8000-000000000007"),
+            "metro_city",
+            "circuit",
+            new[] { "start_finish", "sector_1" },
+            lapCount: 2);
+        multiLap.AddEntrant(first);
+        multiLap.Start(start);
+        multiLap.RecordCheckpoint(first, "start_finish", start.AddMilliseconds(1));
+        multiLap.RecordCheckpoint(first, "sector_1", start.AddMilliseconds(5));
+        Expect<InvalidOperationException>(
+            () => multiLap.RecordCheckpoint(first, "sector_1", start.AddMilliseconds(6)),
+            "next lap must begin at its first checkpoint");
+        multiLap.RecordCheckpoint(first, "start_finish", start.AddMilliseconds(7));
+        var lapTwoStanding = default(RaceStanding);
+        multiLap.RecordCheckpoint(first, "sector_1", start.AddMilliseconds(12));
+        var multiLapResult = multiLap.BuildFinalResults(standing =>
+        {
+            lapTwoStanding = standing;
+            return 0;
+        }).Single();
+        Check(multiLapResult.FinishTimeMs == 12, "finish time is set after the final lap checkpoint");
+        Check(lapTwoStanding is not null &&
+              lapTwoStanding.CompletedCheckpoints == 4 &&
+              lapTwoStanding.TotalCheckpoints == 4,
+            "race standing counts checkpoints across every configured lap");
+
         var capacity = CreateRuntime(Guid.Parse("10000000-0000-4000-8000-000000000004"));
         for (var i = 1; i <= 64; i++)
             capacity.AddEntrant(Guid.Parse($"30000000-0000-4000-8000-{i:000000000000}"));
