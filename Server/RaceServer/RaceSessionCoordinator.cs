@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,10 +47,17 @@ namespace ApexGTWorld.RaceServer
                 cancellationToken).ConfigureAwait(false);
 
             if (!response.Ok || response.Session is not JsonElement session ||
+                session.ValueKind != JsonValueKind.Object ||
                 !session.TryGetProperty("race_session_id", out var idElement) ||
                 idElement.ValueKind != JsonValueKind.String ||
                 !Guid.TryParse(idElement.GetString(), out var sessionId) ||
-                sessionId == Guid.Empty)
+                sessionId == Guid.Empty ||
+                !session.TryGetProperty("race_status", out var statusElement) ||
+                statusElement.GetString() != "created" ||
+                !session.TryGetProperty("region_id", out var regionElement) ||
+                regionElement.GetString() != regionId ||
+                !session.TryGetProperty("discipline", out var disciplineElement) ||
+                disciplineElement.GetString() != discipline)
             {
                 throw new InvalidOperationException("Race control did not return a valid created session ID.");
             }
@@ -60,21 +68,30 @@ namespace ApexGTWorld.RaceServer
 
         public void AddEntrant(Guid userId) => _runtime.AddEntrant(userId);
 
-        public async Task StartAsync(
-            DateTimeOffset serverStartTime,
-            CancellationToken cancellationToken = default)
+        public async Task StartAsync(CancellationToken cancellationToken = default)
         {
             if (_runtime.Status != RaceRuntimeStatus.Created || _runtime.EntrantCount < 1)
                 throw new InvalidOperationException("Register at least one entrant before starting the race.");
-            if (serverStartTime == default)
-                throw new ArgumentException("A valid server start time is required.", nameof(serverStartTime));
 
             var response = await _control.StartSessionAsync(SessionId, cancellationToken).ConfigureAwait(false);
-            if (!response.Ok)
-                throw new InvalidOperationException("Race control rejected the session start.");
+            if (!response.Ok ||
+                response.Result is not JsonElement result ||
+                result.ValueKind != JsonValueKind.Object ||
+                !result.TryGetProperty("race_started_at", out var startedAtElement) ||
+                startedAtElement.ValueKind != JsonValueKind.String ||
+                !DateTimeOffset.TryParse(
+                    startedAtElement.GetString(),
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind,
+                    out var databaseStartedAt) ||
+                databaseStartedAt == default)
+            {
+                throw new InvalidOperationException("Race control did not return a valid authoritative start timestamp.");
+            }
 
-            // Only begin local timing after the durable server-side transition succeeds.
-            _runtime.Start(serverStartTime);
+            // Use the timestamp stored by PostgreSQL, not the client's request time
+            // or a pre-request local clock sample.
+            _runtime.Start(databaseStartedAt);
         }
 
         public void RecordCheckpoint(Guid userId, string checkpointId, DateTimeOffset serverEventTime) =>
