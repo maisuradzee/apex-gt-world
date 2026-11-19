@@ -17,6 +17,9 @@ namespace ApexGTWorld.Offline
         public long careerXp;
         public int careerLevel = 1;
         public string selectedVehicleId = "starter_car";
+        public int engineUpgradeLevel;
+        public int handlingUpgradeLevel;
+        public int brakeUpgradeLevel;
         public string[] ownedVehicleIds = { "starter_car" };
         public string[] unlockedRegionIds = { "metro_city" };
         public string[] completedEventIds = new string[0];
@@ -34,6 +37,9 @@ namespace ApexGTWorld.Offline
             careerXp = Math.Max(0L, careerXp);
             careerLevel = Mathf.Max(1, 1 + (int)Math.Min(int.MaxValue - 1L, careerXp / 1000L));
             if (string.IsNullOrWhiteSpace(selectedVehicleId)) selectedVehicleId = "starter_car";
+            engineUpgradeLevel = Mathf.Clamp(engineUpgradeLevel, 0, 5);
+            handlingUpgradeLevel = Mathf.Clamp(handlingUpgradeLevel, 0, 5);
+            brakeUpgradeLevel = Mathf.Clamp(brakeUpgradeLevel, 0, 5);
             ownedVehicleIds = ownedVehicleIds ?? new string[0];
             unlockedRegionIds = unlockedRegionIds ?? new string[0];
             completedEventIds = completedEventIds ?? new string[0];
