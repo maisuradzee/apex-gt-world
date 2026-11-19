@@ -36,13 +36,13 @@ internal static class RaceSessionCoordinatorTests
         Check(coordinator.SessionId == sessionId, "coordinator uses the database session ID");
         Check(coordinator.Status == RaceRuntimeStatus.Created, "created coordinator begins in Created state");
         await ExpectAsync<InvalidOperationException>(
-            () => coordinator.StartAsync(start),
+            () => coordinator.StartAsync(),
             "race cannot start before an entrant joins");
         Check(handler.Requests.Count == 1, "invalid local start sends no remote start request");
 
         coordinator.AddEntrant(first);
         coordinator.AddEntrant(second);
-        await coordinator.StartAsync(start);
+        await coordinator.StartAsync();
         Check(coordinator.Status == RaceRuntimeStatus.Running, "coordinator starts local runtime after remote start");
 
         coordinator.RecordCheckpoint(first, "start_finish", start.AddMilliseconds(10));
@@ -151,8 +151,8 @@ internal static class RaceSessionCoordinatorTests
 
             var response = operation switch
             {
-                "create" => $"{{\"ok\":true,\"operation\":\"create\",\"session\":{{\"race_session_id\":\"{_sessionId}\",\"race_status\":\"created\",\"applied\":true}}}}",
-                "start" => $"{{\"ok\":true,\"operation\":\"start\",\"result\":{{\"race_session_id\":\"{_sessionId}\",\"race_status\":\"running\",\"was_started\":true}}}}",
+                "create" => $"{{\"ok\":true,\"operation\":\"create\",\"session\":{{\"race_session_id\":\"{_sessionId}\",\"race_status\":\"created\",\"region_id\":\"metro_city\",\"discipline\":\"circuit\",\"applied\":true}}}}",
+                "start" => $"{{\"ok\":true,\"operation\":\"start\",\"result\":{{\"race_session_id\":\"{_sessionId}\",\"race_status\":\"running\",\"race_started_at\":\"2030-02-01T09:00:00.000Z\",\"was_started\":true}}}}",
                 "finalize" => $"{{\"ok\":true,\"operation\":\"finalize\",\"results\":[]}}",
                 _ => "{\"ok\":false,\"error\":\"unsupported\"}"
             };
