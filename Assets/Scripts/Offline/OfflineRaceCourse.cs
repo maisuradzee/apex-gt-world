@@ -53,7 +53,16 @@ namespace ApexGTWorld.Offline
 
             currentSession = new OfflineRaceSession(definition, participants);
             for (int i = 0; i < aiDrivers.Count; i++)
+            {
+                aiRoots[i].SetActive(true);
+                Rigidbody aiBody = aiRoots[i].GetComponent<Rigidbody>();
+                if (aiBody != null)
+                {
+                    aiBody.velocity = Vector3.zero;
+                    aiBody.angularVelocity = Vector3.zero;
+                }
                 aiDrivers[i].BeginDriving();
+            }
             return true;
         }
 
@@ -61,7 +70,10 @@ namespace ApexGTWorld.Offline
         {
             currentSession = null;
             for (int i = 0; i < aiDrivers.Count; i++)
+            {
                 if (aiDrivers[i] != null) aiDrivers[i].StopDriving();
+                if (i < aiRoots.Count && aiRoots[i] != null) aiRoots[i].SetActive(false);
+            }
         }
 
         private void BuildCheckpoints()
@@ -123,6 +135,7 @@ namespace ApexGTWorld.Offline
                 Rigidbody rb = ai.AddComponent<Rigidbody>();
                 rb.mass = 1200f;
                 rb.interpolation = RigidbodyInterpolation.Interpolate;
+                rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
                 OfflineAiDriver driver = ai.AddComponent<OfflineAiDriver>();
                 driver.Configure(route, 13f + i * 1.4f, (i - 1) * 1.2f);
                 ai.SetActive(false);
